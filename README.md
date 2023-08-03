@@ -36,6 +36,9 @@ Shoutout [@Dojah](https://twitter.com/DojahServers) for getting me into modding 
 ## t6 - Method 1:
 * Just run the [bat file](https://github.com/Quikkster/FableServers-Zombies/blob/main/t6/AppData/Local/Plutonium/storage/t6/install%20to%20Plutonium%20Directory.bat)<br />
 
+## s1x - Method 1:
+* install to your s1x directory, we provided all dlls needed to run the game as well, open the provided [s1x.exe laucnher](https://github.com/Quikkster/FableServers-Zombies/blob/main/s1x/s1x.exe) and click `Survival` followed by `Zombies`, start a match and enjoy!<br />
+
 # `FableZombies: Starting Up The Mod`
 ## t6:
 * Start PlutoniumT6 Zombies, and start a match.<br />
