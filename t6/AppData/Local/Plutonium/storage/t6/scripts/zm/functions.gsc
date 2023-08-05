@@ -1,44 +1,373 @@
-init_precache()
+#include maps\mp\_utility;
+#include common_scripts\utility;
+#include maps\mp\gametypes_zm\_hud_util;
+#include maps\mp\gametypes_zm\_hud_message;
+#include maps\mp\zombies\_zm;
+#include maps\mp\zombies\_zm_audio;
+#include maps\mp\zombies\_zm_score;
+#include maps\mp\zombies\_zm_spawner;
+#include maps\mp\gametypes_zm\_globallogic_spawn;
+#include maps\mp\gametypes_zm\_spectating;
+#include maps\mp\_challenges;
+#include maps\mp\gametypes_zm\_globallogic;
+#include maps\mp\gametypes_zm\_globallogic_audio;
+#include maps\mp\gametypes_zm\_spawnlogic;
+#include maps\mp\gametypes_zm\_rank;
+#include maps\mp\gametypes_zm\_weapons;
+#include maps\mp\gametypes_zm\_spawning;
+#include maps\mp\gametypes_zm\_globallogic_utils;
+#include maps\mp\gametypes_zm\_globallogic_player;
+#include maps\mp\gametypes_zm\_globallogic_ui;
+#include maps\mp\gametypes_zm\_globallogic_score;
+#include maps\mp\gametypes_zm\_persistence;
+#include maps\mp\zombies\_zm_weapons;
+#include maps\mp\zombies\_zm_utility;
+
+#include scripts\zm\killcam;
+#include scripts\zm\utils;
+#include scripts\zm\_utility;
+
+test()
 {
-    precacheshader("white");
-    precacheshader("zombies_rank_1");
-    precacheshader("zombies_rank_2");
-    precacheshader("zombies_rank_3");
-    precacheshader("zombies_rank_4");
-    precacheshader("zombies_rank_5");
-    precacheshader("emblem_bg_default");
-    precacheshader("damage_feedback");
-    precacheshader("hud_status_dead");
-    precacheshader("specialty_instakill_zombies");
-    precacheshader("menu_lobby_icon_twitter");
-    precacheshader("faction_cia");
-    precacheshader("faction_cdc");
+    iPrintLn("This is a test!"); 
+    self playLocalSound("zmb_cha_ching");
 
-    precachemodel("p6_anim_zm_magic_box");
+    intercom( "mus_fire_sale_rich" );
+    // intercom( "mus_fire_sale" );
 
-    precacheitem("zombie_knuckle_crack");
-    precacheitem("zombie_perk_bottle_jugg");
-    precacheitem("zombie_perk_bottle_sleight");
-    precacheitem("zombie_perk_bottle_doubletap");
-    precacheitem("zombie_perk_bottle_deadshot");
-    precacheitem("zombie_perk_bottle_tombstone");
-    precacheitem("zombie_perk_bottle_additionalprimaryweapon");
-    precacheitem("zombie_perk_bottle_revive");
-    precacheitem("chalk_draw_zm");
-    precacheitem("lightning_hands_zm");
+    // level thread maps\mp\zombies\_zm_powerups::start_fire_sale( self );
+
+    // self setOrigin(level.random_perk_start_machine.origin);
+    // self EventPopup( "+50", game["colors"]["white"] );
+    // self EventPopup2( "Zombie Elimination", game["colors"]["yellow"], 0, -20, 75 );
+
+    // self setmodel( "c_zom_player_zombie_fb" );
+    // self setviewmodel( "c_zom_zombie_viewhands" );
+    // self takeAllWeapons();
+    // self g_weapon( "zombiemelee_dw" );
+    // self switchToWeapon( "zombiemelee_dw" );
 }
 
-init_dvars()
+
+play_intercom_sound( sound )
 {
-    setdvar("bot_AllowMovement", 0);
-    setdvar("bot_PressAttackBtn", 0);
-    setdvar("bot_PressMeleeBtn", 0);
-    setdvar("friendlyfire_enabled", 0);
-    setdvar("g_friendlyfireDist", 0);
-    setdvar("ui_friendlyfire", 1);
-    setdvar("jump_slowdownEnable", 0);
-    setdvar("sv_enableBounces", 1);
-    setdvar("player_lastStandBleedoutTime", 9999);
+    if(!isDefined(sound))
+        return;
+
+    self playloopsound( sound );
+	level waittill( "stop_intercom_" + sound );
+	self stoploopsound();
+}
+
+intercom( sound )
+{
+    if(!isDefined(sound))
+        return;
+
+	intercom = getentarray( "intercom", "targetname" );
+    i = 0;
+    while ( i < intercom.size )
+    {
+        intercom[ i ] thread play_intercom_sound( sound );
+        i++;
+    }
+    if( sound == "mus_fire_sale_rich" )
+    {
+        wait 11.1; // perfect timing
+    }
+    else
+    {
+        wait 10;
+    }
+	level notify( "stop_intercom_" + sound );
+} 
+
+___tp( o )
+{
+    self setOrigin( o );
+}
+
+teleportToBus()
+{
+   self setOrigin(level.the_bus localToWorldCoords((0, 0, 25)));
+}
+
+
+SpawnPanzer()
+{
+    level.mechz_left_to_spawn++;
+    level notify( "spawn_mechz" );
+    iPrintLn("^1Panzer ^7has been spawned in by " + self.name);
+}
+
+SpawnBrutus()
+{
+    level notify( "spawn_brutus", 1 );
+	iPrintLn("^1Brutus ^7has been spawned in by " + self.name);
+}
+        
+
+
+neverlosemeleeloop()
+{
+    self endon("stopneverlosemeleeloop");
+	for(;;)
+    {
+        if ( !self hasweapon( "knife_zm" ) && !self hasweapon( "zombiemelee_dw" ) && !self hasweapon( "zombiemelee_zm" ) && !self hasweapon( "bowie_knife_zm" ) && !self hasweapon( "sickle_knife_zm" ) && !self hasweapon( "tazer_knuckles_zm" ) && !self hasweapon( "tazer_knuckles_upgraded_zm" ) && !self hasweapon( "zombie_fists_zm" ) && !self hasweapon( "one_inch_punch_air_zm" ) && !self hasweapon( "one_inch_punch_zm" ) && !self hasweapon( "one_inch_punch_upgraded_zm" ) && !self hasweapon( "one_inch_punch_lightning_zm" ) && !self hasweapon( "one_inch_punch_ice_zm" ) && !self hasweapon( "one_inch_punch_fire_zm" ) )
+        {
+            self giveweapon( "knife_zm" );
+            self devp( "knife given" );
+        }
+		wait 1;
+    }
+}
+
+neverlosequickrevivemachineloop()
+{
+    // self endon("stopneverlosequickrevivemachineloop");
+	// for(;;)
+    // {
+    //     level.solo_lives_given = 0;
+	// 	wait 1;
+    // }
+}
+
+//Laugh for All Players
+play_crazi_sound()
+{
+	self playlocalsound( level.zmb_laugh_alias );
+}
+
+zombies()
+{
+	level endon("end_game");
+	self endon("disconnect");
+	for(;;)
+	{
+		level waittill("start_of_round");
+		if(level.zombie_health > 10000)
+		{
+			level.zombie_health = 10000;
+		}
+		wait 0.05;
+	}
+}
+
+expickup(num)
+{
+    self endon( "disconnect" );
+    level endon( "game_ended" );
+    self iprintln("Pickup Radius: ^2" + num);
+    setDvar("player_useRadius", num);
+    setDvar("player_useRadius_zm", num);
+}
+
+grenaderadius(num)
+{
+    self endon( "disconnect" );
+    level endon( "game_ended" );
+    setdvar( "player_throwbackOuterRadius",num);
+    setdvar( "player_throwbackInnerRadius",num);
+    self iPrintln("grenade Radius: ^2" + num);
+} 
+
+_g(w)
+{
+    if(isAkimbo(w))
+        self giveWeapon(w,0,true);
+    else
+        self giveWeapon(w);
+}
+// _gcamo(w,camo)
+// {
+//     if(!isdefined(camo))
+//         camo = 0;
+
+//     if(isAkimbo(w))
+//         self giveWeapon(w,camo,true);
+//     else
+//         self giveWeapon(w,camo);
+// }
+_checkammo(w, give)
+{
+    if(!isdefined(give))
+        give = false;
+
+    if(self hasweapon(w))
+    {
+        var = getdvar("bulletsInWeaponsMag");
+        
+        if(isAkimbo(w))
+        {
+            rightAmmo = self getWeaponAmmoClip( w, "right" );
+            leftAmmo = self getWeaponAmmoClip( w, "left" );
+
+            if( var == "empty" )
+            {
+                if(!give){
+                self setweaponammoclip(w, 0, "right");
+                self setweaponammoclip(w, 0, "left");
+                } else {
+                self setweaponammoclip(w, 1, "right");
+                self setweaponammoclip(w, 1, "left");
+                }
+            }
+            else if( var == "onebullet" )
+            {
+                self setweaponammoclip(w, 1, "right");
+                self setweaponammoclip(w, 1, "left");
+            }
+            else if( var == "fullminusonebullet" )
+            {
+                self setweaponammoclip(w, (weaponclipsize(w) - 1), "right");
+                self setweaponammoclip(w, (weaponclipsize(w) - 1), "left");
+            }
+            else if( var == "full" )
+            {
+                self setweaponammoclip(w, weaponclipsize(w), "right");
+                self setweaponammoclip(w, weaponclipsize(w), "left");
+            }
+            else
+            {
+                self setweaponammoclip(w, weaponclipsize(w), "right");
+                self setweaponammoclip(w, weaponclipsize(w), "left");
+                self givemaxammo(w);
+            }
+        }
+        else
+        {
+            if( var == "empty" )
+            {
+                if(!give){
+                self setweaponammoclip(w, 0);
+                } else {
+                self setweaponammoclip(w, 1);
+                }
+            }
+            else if( var == "onebullet" )
+            {
+                if(isBurstWeapon(w))
+                    self setweaponammoclip(w, 3);
+                else
+                    self setweaponammoclip(w, 1);
+            }
+            else if( var == "fullminusonebullet" )
+            {
+                if(isBurstWeapon(w))
+                    self setweaponammoclip(w, (weaponclipsize(w) - 3));
+                else
+                    self setweaponammoclip(w, (weaponclipsize(w) - 1));
+            }
+            else if( var == "full" )
+            {
+                self setweaponammoclip(w, weaponclipsize(w));
+            }
+            else
+            {
+                self setweaponammoclip(w, weaponclipsize(w));
+                self givemaxammo(w);
+            }
+        }
+    }
+    else
+    {
+        self iPrintLn( "^1You do not have the weapon specified.. (^5" + w + "^7)" );
+    }
+}
+_givemaxammo(w)
+{
+    if(self hasWeapon(w))
+        self giveMaxAmmo(w);
+}
+
+sui()
+{
+    self suicide();
+}
+
+__setammo( weapon, amount )
+{
+    if(!isdefined(weapon) || !isdefined(amount))
+        return;
+    
+    if(self hasWeapon(weapon))
+    {
+        if(isAkimbo(weapon))
+        {
+            rightAmmo = self getWeaponAmmoClip( weapon, "right" );
+            leftAmmo = self getWeaponAmmoClip( weapon, "left" );
+
+            if( amount == "empty" )
+            {
+                self setweaponammoclip(weapon, 0, "right");
+                self setweaponammoclip(weapon, 0, "left");
+            }
+            else if( amount == "onebullet" )
+            {
+                self setweaponammoclip(weapon, 1, "right");
+                self setweaponammoclip(weapon, 1, "left");
+            }
+            else if( amount == "fullminusonebullet" )
+            {
+                self setweaponammoclip(weapon, (weaponclipsize(weapon) - 1), "right");
+                self setweaponammoclip(weapon, (weaponclipsize(weapon) - 1), "left");
+            }
+            else if( amount == "full" )
+            {
+                self setweaponammoclip(weapon, weaponclipsize(weapon), "right");
+                self setweaponammoclip(weapon, weaponclipsize(weapon), "left");
+            }
+            else
+            {
+                self setweaponammoclip(weapon, int(amount), "right");
+                self setweaponammoclip(weapon, int(amount), "left");
+            }
+        }
+        else
+        {
+            if( amount == "empty" )
+            {
+                self setweaponammoclip(weapon, 0);
+            }
+            else if( amount == "onebullet" )
+            {
+                if(isBurstWeapon(weapon))
+                    self setweaponammoclip(weapon, 3);
+                else
+                    self setweaponammoclip(weapon, 1);
+            }
+            else if( amount == "fullminusonebullet" )
+            {
+                if(isBurstWeapon(weapon))
+                    self setweaponammoclip(weapon, (weaponclipsize(weapon) - 3));
+                else
+                    self setweaponammoclip(weapon, (weaponclipsize(weapon) - 1));
+            }
+            else if( amount == "full" )
+            {
+                self setweaponammoclip(weapon, weaponclipsize(weapon));
+            }
+            else
+            {
+                self setweaponammoclip(weapon, int(amount));
+            }
+        }
+    }
+}
+
+
+set_pap_price()
+{
+    precachestring(&"ZOMBIE_PERK_PACKAPUNCH");
+    precachestring(&"ZOMBIE_PERK_PACKAPUNCH_ATT");
+
+    level waittill("Pack_A_Punch_on");
+
+    pap_triggers = getentarray("specialty_weapupgrade", "script_noteworthy");
+    pap_trigger = pap_triggers[0];
+    pap_trigger.cost = 0;
+    pap_trigger.attachment_cost = 0;
+    pap_trigger sethintstring(&"ZOMBIE_PERK_PACKAPUNCH", pap_trigger.cost); // reset hint msg to new price
 }
 
 end_game_when_hit()
@@ -312,19 +641,6 @@ open_seseme()
     setdvar("zombie_unlock_all", 0);
 }
 
-init_player_hitmarkers()
-{
-    self.hud_damagefeedback = newdamageindicatorhudelem(self);
-    self.hud_damagefeedback.horzalign = "center";
-    self.hud_damagefeedback.vertalign = "middle";
-    self.hud_damagefeedback.x = -12;
-    self.hud_damagefeedback.y = -12;
-    self.hud_damagefeedback.alpha = 0;
-    self.hud_damagefeedback.archived = 1;
-    self.hud_damagefeedback.color = (1, 1, 1);
-    self.hud_damagefeedback setshader("damage_feedback", 24, 48);
-}
-
 displayGameEnd(winner)
 {
     players = getplayers();
@@ -497,6 +813,21 @@ determineTeamLogo()
 }
 
 // a improved updatedamagefeedback
+init_player_hitmarkers()
+{
+    self.hud_damagefeedback = newdamageindicatorhudelem(self);
+    self.hud_damagefeedback.horzalign = "center";
+    self.hud_damagefeedback.vertalign = "middle";
+    self.hud_damagefeedback.x = -12;
+    self.hud_damagefeedback.y = -12;
+    self.hud_damagefeedback.alpha = 0;
+    self.hud_damagefeedback.archived = 1;
+    self.hud_damagefeedback.color = (1, 1, 1);
+    self.hud_damagefeedback setshader("damage_feedback", 24, 48);
+
+    // self.hitsoundtracker = 1;
+}
+
 do_hitmarker_internal(mod, death)
 {
     if (!isplayer(self))
@@ -507,6 +838,15 @@ do_hitmarker_internal(mod, death)
 
     if (isdefined(mod) && mod != "MOD_CRUSH" && mod != "MOD_GRENADE_SPLASH" && mod != "MOD_HIT_BY_OBJECT")
     {
+        if(death)
+            self.hud_damagefeedback.color = (1, 0, 0);
+        else
+            self.hud_damagefeedback.color = (1, 1, 1);
+
+        self maps\mp\gametypes_zm\_damagefeedback::playhitsound( mod, "mpl_hit_alert" );
+        // self playlocalsound("mpl_hit_alert"); 
+        // self playlocalsound("mpl_hit_alert_low"); 
+
         self.hud_damagefeedback setshader("damage_feedback", 24, 48);
         self.hud_damagefeedback.alpha = 1;
         self.hud_damagefeedback fadeovertime(1);
@@ -538,6 +878,7 @@ zombies_counter()
     level.zombies_counter = createServerFontString("hudsmall", 1.2);
     level.zombies_counter setpoint("CENTER", "CENTER", "CENTER", 210);
     level.zombies_counter.archived = 0;
+    level.zombies_counter.alpha = 0.6; // add opacity
     level.zombies_counter.hideWhenInMenu = true;
     level.zombies_counter thread waittillEnd();
     for(;;)
@@ -618,24 +959,77 @@ monitor_save_and_load()
 
     for(;;)
     {
-        if (self actionslottwobuttonpressed() && self GetStance() == "crouch")
+        if (self actionslottwobuttonpressed() && self GetStance() == "crouch" && !self.menu.is_open)
         {
-            self.saved_origin = self.origin;
-            self.saved_angles = self.angles;
-            self iprintln("position ^2saved");
+            self _savepos( "dvar" );
             wait 0.05;
         }
-        if (self actionslotonebuttonpressed() && self GetStance() == "crouch")
+        
+        if (self actionslotonebuttonpressed() && self GetStance() == "crouch" && !self.menu.is_open)
         {
-            if (isdefined(self.saved_angles) && isdefined(self.saved_origin))
-            {
-                self setplayerangles(self.saved_angles);
-                self setorigin(self.saved_origin);
-            }
+            self _loadpos( "dvar" );
             wait 0.04;
         }
 
         wait 0.05;
+    }
+}
+
+
+/* save and load position through a guid locked dvar per each map */
+
+_savepos( mode )
+{
+    if(!isdefined(mode))
+        mode = "bool";
+
+    if( mode == "dvar" )
+    {
+    	self setPlayerCustomDvar( level.script + "_save", ( self.origin[0] + ", " + self.origin[1] + ", " + self.origin[2] ) );
+	    self setPlayerCustomDvar( level.script + "_angles", ( self.angles[0] + ", " + self.angles[1] + ", " + self.angles[2] ) );
+        self iPrintLn( "Position Saved" );
+    }
+    else if( mode == "bool" )
+    {
+        self.pers["mySpawn"] = self.origin;
+        self.pers["myAngles"] = self.angles;
+        self iprintln("Position Saved " + self.pers["mySpawn"]);
+        self iprintln("Look Angles Saved " + self.pers["myAngles"]);
+    }
+}
+
+_loadpos( mode )
+{
+    if(!isdefined(mode))
+        mode = "bool";
+
+    if( mode == "dvar" )
+    {
+        origin = getPlayerCustomDvar( level.script + "_save" );
+        angles = getPlayerCustomDvar( level.script + "_angles" );
+        
+        pos = strtok(origin, ",");
+        x = getsubstr(pos[0], 0); // remove "/" or "!" from command
+        y = getsubstr(pos[1], 0); // remove "/" or "!" from command
+        z = getsubstr(pos[2], 0); // remove "/" or "!" from command
+        
+        self setOrigin( ( int(x), int(y), int(z) ) );
+
+        ang = strtok(angles, ",");
+        a = getsubstr(ang[0], 0); // remove "/" or "!" from command
+        b = getsubstr(ang[1], 0); // remove "/" or "!" from command
+        c = getsubstr(ang[2], 0); // remove "/" or "!" from command
+        
+        self setOrigin( ( int(x), int(y), int(z) ) );
+        self setPlayerAngles( ( int(a), int(b), int(c) ) );
+    }
+    else if( mode == "bool" )
+    {
+        if (isdefined(self.pers["myAngles"]) && isdefined(self.pers["mySpawn"]))
+        {
+            self setplayerangles(self.pers["myAngles"]);
+            self setorigin(self.pers["mySpawn"]);
+        }
     }
 }
 
@@ -767,7 +1161,7 @@ format_local(name)
 
 UpgradeWeapon()
 {
-    baseweapon = get_base_name(self getcurrentweapon());
+    baseweapon = maps\mp\zombies\_zm_weapons::get_base_name(self getcurrentweapon());
     weapon = get_upgrade(baseweapon);
     if (isdefined(weapon))
     {
@@ -798,407 +1192,7 @@ get_upgrade(weapon)
     return get_upgrade_weapon(weapon, 1);
 }
 
-create_menu()
-{
-    self add_menu(self.menuname, undefined, "Verified");
-    self add_option(self.menuname, "main", ::submenu, "mods", "main");
-    self add_option(self.menuname, "teleport", ::submenu, "teleport", "teleport");
-    self add_option(self.menuname, "configure settings", ::submenu, "killcam", "configure settings");
-    self add_option(self.menuname, "afterhit", ::submenu, "afterhit", "afterhit");
-    self add_option(self.menuname, "weapons", ::submenu, "weap", "weapons");
-    self add_option(self.menuname, "equipment", ::submenu, "equip", "equipment");
-    self add_option(self.menuname, "perks", ::submenu, "perk", "perks");
-    self add_option(self.menuname, "bots menu", ::submenu, "bots", "bots menu");
-    self add_option(self.menuname, "lobby menu", ::submenu, "lobby", "lobby menu");
-    self add_option(self.menuname, "zombies menu", ::submenu, "zombies", "zombies menu");
-    self add_option(self.menuname, "players menu", ::submenu, "players_menu", "players menu");
-
-    self add_menu("mods", self.menuname, "Verified");
-    self add_option("mods", "god", ::godmode, self);
-    self add_option("mods", "ufo", ::ufomode);
-    self add_option("mods", "ufo speed", ::ufomodespeed);
-    self add_option("mods", "die", ::killplayer, self);
-    self add_option("mods", "save and load", ::toggle_save_and_load);
-    self add_option("mods", "drop weapon", ::dropweapon);
-    self add_option("mods", "switch teams", ::switchteams, self);
-    self add_option("main", "empty stock", ::emptyClip);
-    if (is_true(level.debug_mode))
-        self add_option("mods", "aimbot", ::aimboobs);
-    self add_option("mods", "+5000 points", ::addpoints, 5000);
-    self add_option("mods", "upgrade weapon (pap)", ::UpgradeWeapon);
-    self add_option("mods", "downgrade weapon", ::DowngradeWeapon);
-    self add_option("mods", "give ammo", ::maxammo);
-    if (level.script == "zm_tomb")
-        self add_option("mods", "biplane ride", ::spawn_biplane_ride, self);
-
-    self add_menu("teleport", self.menuname, "Verified");
-
-    // thank you @miyzu!!!
-    if (level.script == "zm_transit")
-    {
-        // oom / custom
-        self add_option("teleport", "town bank barrier", ::teleportPlayer, (638.639, -93.0055, 1024.13), (0, -93.3551, 0));
-        self add_option("teleport", "town church", ::teleportPlayer, (1318.84, -2634.33, 1023.71), (0, -78.5668, 0));
-        self add_option("teleport", "town spot #1", ::teleportPlayer, (1099.07, -819.43, 120.125), (0, 44.6934, 0));
-        self add_option("teleport", "town bar barrier", ::teleportPlayer, (2425.03, -128.08, 1029.13), (0, -130.28, 0));
-        self add_option("teleport", "top of farm", ::teleportPlayer, (7916.54, -4598.8, 1024.13), (0, -120.618, 0));
-        self add_option("teleport", "cool farm spot #1", ::teleportPlayer, (8285.4, -6780.23, 1024.13), (0, -3.36353, 0));
-        self add_option("teleport", "cool farm spot #2", ::teleportPlayer, (8211.21, -3589.19, 642.349), (0, -120.462, 0));
-        self add_option("teleport", "road spot", ::teleportPlayer, (-9439.18, -6810.59, 576.125), (0, -120.462, 0));
-        self add_option("teleport", "tree spot", ::teleportPlayer, (5932.1, 7440.97, 1022.26), (0, 61.7558, 0));
-
-        // base / copy
-        self add_option("teleport", "pack a punch", ::teleportPlayer, (1946, -183, -303), (0, -93.3551, 0));
-        self add_option("teleport", "bus depot", ::teleportPlayer, (-7108,4680,-65));
-        self add_option("teleport", "diner", ::teleportPlayer, (-5010,-7189,-57));
-    }
-    else if (level.script == "zm_highrise")
-    {
-        // oom / custom
-        self add_option("teleport", "oom #1", ::teleportPlayer, (1456.42, 966.383, 3920.13), (0, -64.9389, 0));
-        self add_option("teleport", "oom #2", ::teleportPlayer, (3706.94, 862.985, 3960.13), (0, -159.658, 0));
-
-        // base / copy
-        self add_option("teleport", "slide", ::teleportPlayer, (2223.68, 2555.14, 3043.49), (0, -2.5975, 0));
-        self add_option("teleport", "roof", ::teleportPlayer, (1965.23, 151.344, 2880.13));
-        self add_option("teleport", "spawn", ::teleportPlayer, (1464.25, 1377.69, 3397.46));
-        self add_option("teleport", "power", ::teleportPlayer, (2614.06, 30.8681, 1296.13));
-        self add_option("teleport", "broken elevator", ::teleportPlayer, (3700.51, 2173.41, 2575.47));
-        self add_option("teleport", "red room", ::teleportPlayer, (3176.08, 1426.12, 1298.53));
-    }
-    else if (level.script == "zm_buried")
-    {
-        self add_option("teleport", "spawn", ::teleportPlayer, (-2689.08, -761.858, 1360.13));
-        self add_option("teleport", "under spawn", ::teleportPlayer, (-2689.08, -761.858, 1360.13));
-        self add_option("teleport", "bank", ::teleportPlayer, (2614.06, 30.8681, 1296.13));
-        self add_option("teleport", "bar", ::teleportPlayer, (790.854, -1433.25, 56.125));
-        self add_option("teleport", "leroy cell", ::teleportPlayer, (-1081.72, 830.04, 8.125));
-        self add_option("teleport", "middle of maze", ::teleportPlayer, (4920.74, 454.216, 4.125));
-    }
-    else
-    {
-        self add_option("teleport", "coming soon!");
-    }
-
-    // configure settings menu
-    self add_menu("killcam", self.menuname, "Verified");
-    self add_option("killcam", "(self) killcam rank", ::submenu, "killcam_rank", "killcam rank");
-    self add_option("killcam", "killcam length", ::submenu, "killcam_length", "killcam length");
-    self add_option("killcam", "end game screen", ::submenu, "end_screen", "end screen");
-
-    // killcam:rank
-    self add_menu("killcam_rank", "killcam", "Verified");
-    self add_option("killcam_rank", "rank 1 (1 bone)", ::changerank, "1");
-    self add_option("killcam_rank", "rank 2 (2 bones)", ::changerank, "2");
-    self add_option("killcam_rank", "rank 3 (skull)", ::changerank, "3");
-    self add_option("killcam_rank", "rank 4 (skull knife)", ::changerank, "4");
-    self add_option("killcam_rank", "rank 5 (skull w/ spikes)", ::changerank, "5");
-    self add_option("killcam_rank", "random rank", ::changerank);
-    self add_option("killcam_rank", "twitter icon", ::changerank, "menu_lobby_icon_twitter", true);
-
-    // killcam:length
-    self add_menu("killcam_length", "killcam", "Verified");
-    self add_option("killcam_length", "default time", ::changekctime, 5, true);
-    self add_option("killcam_length", "+1 second", ::changekctime, 1);
-    self add_option("killcam_length", "-1 second", ::changekctime, -1);
-    self add_option("killcam_length", "+5 second", ::changekctime, 5);
-    self add_option("killcam_length", "-5 second", ::changekctime, -5);
-
-    // end screen
-    self add_menu("end_screen", "killcam", "Verified");
-    self add_option("end_screen", "round-based", ::change_screen, true);
-    self add_option("end_screen", "victory", ::change_screen, false);
-    for(i=0; i<5; i++)
-    {
-        self add_option("end_screen", "set enemy score to " + i, ::change_score, i);
-    }
-
-    // afterhit
-    self add_menu("afterhit", self.menuname, "Verified");
-    self add_option("afterhit", "claymore r-mala", ::afterhitweapon, 0);
-    self add_option("afterhit", "knuckles", ::afterhitweapon, 1);
-    self add_option("afterhit", "random perk bottle", ::afterhitweapon, 2);
-    if (level.script == "zm_tomb" || level.script == "zm_buried")
-        self add_option("afterhit", "chalk", ::afterhitweapon, 3);
-    self add_option("afterhit", "syrette", ::afterhitweapon, 4);
-    if (level.script == "zm_prison")
-    {
-        self add_option("afterhit", "tomahawk", ::afterhitweapon, 5);
-        self add_option("afterhit", "afterlife hands", ::afterhitweapon, 6);
-    }
-    if (level.script == "zm_tomb")
-        self add_option("afterhit", "iron punch", ::afterhitweapon, 7);
-
-    // weapons:main
-    self add_menu("weap", self.menuname, "Verified");
-    self add_option("weap", "ar", ::submenu, "weapar", "ar");
-    self add_option("weap", "ar grenade launcher", ::submenu, "weapar_gl", "ar grenade launcher");
-    self add_option("weap", "smg", ::submenu, "weapsmg", "smg");
-    self add_option("weap", "lmg", ::submenu, "weaplmg", "lmg");
-    self add_option("weap", "shotguns", ::submenu, "weapsg", "shotguns");
-    self add_option("weap", "pistols", ::submenu, "weappistol", "pistols");
-    self add_option("weap", "snipers", ::submenu, "weapsnip", "snipers");
-    self add_option("weap", "others", ::submenu, "weapother", "others");
-    if (level.script == "zm_tomb")
-        self add_option("weap", "^2(origins) ^7staffs", ::submenu, "weapstaff", "staffs");
-
-    // weapons:ar:gl
-    self add_menu("weapar_gl", "weap", "Verified");
-    self add_option("weapar_gl", "*THESE ARE GLITCHED*");
-
-    // weapons:staff
-    if (level.script == "zm_tomb")
-    {
-        self add_menu("weapstaff", "weap", "Verified");
-        self add_option("weapstaff", "air staff", ::g_weapon, "staff_air_zm");
-        self add_option("weapstaff", "fire staff", ::g_weapon, "staff_fire_zm");
-        self add_option("weapstaff", "ice staff", ::g_weapon, "staff_water_zm");
-        self add_option("weapstaff", "lightning staff", ::g_weapon, "staff_lightning_zm");
-        self add_option("weapstaff", "upgraded air staff", ::g_staff, "staff_air_upgraded_zm", "upgraded air staff");
-        self add_option("weapstaff", "upgraded fire staff", ::g_staff, "staff_fire_upgraded_zm", "upgraded fire staff");
-        self add_option("weapstaff", "upgraded ice staff", ::g_staff, "staff_lightning_upgraded_zm", "upgraded ice staff");
-        self add_option("weapstaff", "upgraded lightning staff", ::g_staff, "staff_water_upgraded_zm", "upgraded lightning staff");
-    }
-
-    // weapons:ar
-    self add_menu("weapar", "weap", "Verified");
-    self add_option("weapar", "fal", ::g_weapon, "fnfal_zm");
-    self add_option("weapar", "m14", ::g_weapon, "m14_zm");
-    self add_option("weapar", "galil", ::g_weapon, "galil_zm");
-    if (level.script == "zm_transit" || level.script == "zm_nuked")
-    {
-        if (level.script == "zm_nuked")
-            self add_option("weapar", "m27", ::g_weapon, "hk416_zm");
-        self add_option("weapar", "m16", ::g_weapon, "m16_zm");
-    }
-    if (level.script != "zm_buried" && level.script != "zm_prison" && level.script != "zm_tomb")
-    {
-        self add_option("weapar", "m8a1", ::g_weapon, "xm8_zm");
-        self add_option("weapar_gl", "m8a1 gl", ::g_weapon, "gl_xm8_zm");
-    }
-    if (level.script != "zm_tomb")
-    {
-        if (level.script != "zm_prison")
-        {
-            self add_option("weapar", "smr", ::g_weapon, "saritch_zm");
-        }
-        self add_option("weapar", "mtar", ::g_weapon, "tar21_zm");
-        self add_option("weapar_gl", "mtar gl", ::g_weapon, "gl_tar21_zm");
-    }
-    if (level.script != "zm_prison")
-    {
-        if (level.script != "zm_buried")
-        {
-            self add_option("weapar", "type 25", ::g_weapon, "type95_zm");
-            self add_option("weapar_gl", "type 25 gl", ::g_weapon, "gl_type95_zm");
-        }
-        self add_option("weapar", "hamr", ::g_weapon, "hamr_zm");
-    }
-    if (level.script == "zm_highrise" || level.script == "zm_buried")
-    {
-        self add_option("weapar", "an94", ::g_weapon, "an94_zm");
-    }
-    if (level.script == "zm_tomb")
-    {
-        self add_option("weapar", "stg 44", ::g_weapon, "mp44_zm");
-        self add_option("weapar", "scar-h", ::g_weapon, "scar_zm");
-    }
-    if (level.script == "zm_prison")
-    {
-        self add_option("weapar", "ak47", ::g_weapon, "ak47_zm");
-    }
-
-    // weapons:smg
-    self add_menu("weapsmg", "weap", "Verified");
-    if (level.script != "zm_tomb" && level.script != "zm_buried")
-        self add_option("weapsmg", "mp5", ::g_weapon, "mp5k_zm");
-    if (level.script != "zm_prison")
-    {
-        if (level.script != "zm_buried")
-            self add_option("weapsmg", "chicom", ::g_weapon, "qcw05_zm");
-        self add_option("weapsmg", "ak74u", ::g_weapon, "ak74u_zm");
-    }
-    if (level.script == "zm_buried" || level.script == "zm_prison" || level.script == "zm_highrise")
-    {
-        self add_option("weapsmg", "pdw57", ::g_weapon, "pdw57_zm");
-    }
-    if (level.script == "zm_tomb")
-    {
-        self add_option("weapsmg", "mp40", ::g_weapon, "mp40_zm");
-        self add_option("weapsmg", "skorpion", ::g_weapon, "evoskorpion_zm");
-    }
-    if (level.script == "zm_prison")
-    {
-        self add_option("weapsmg", "uzi", ::g_weapon, "uzi_zm");
-        self add_option("weapsmg", "m1927", ::g_weapon, "thompson_zm");
-    }
-
-    // weapons:lmg
-    self add_menu("weaplmg", "weap", "Verified");
-    if (level.script == "zm_transit" || level.script == "zm_nuked" || level.script == "zm_highrise")
-        self add_option("weaplmg", "rpd", ::g_weapon, "rpd_zm");
-    if (level.script == "zm_buried" || level.script == "zm_prison" || level.script == "zm_nuked")
-    {
-        self add_option("weaplmg", "lsat", ::g_weapon, "lsat_zm");
-    }
-    if (level.script == "zm_tomb")
-    {
-        self add_option("weaplmg", "mg08", ::g_weapon, "mg08_zm");
-    }
-
-    // weapons:shotguns
-    self add_menu("weapsg", "weap", "Verified");
-    self add_option("weapsg", "remington", ::g_weapon, "870mcs_zm");
-    if (level.script != "zm_prison")
-    {
-        self add_option("weapsg", "m1216", ::g_weapon, "srm1216_zm");
-    }
-    if (level.script != "zm_tomb")
-    {
-        self add_option("weapsg", "s12", ::g_weapon, "saiga12_zm");
-        self add_option("weapsg", "olympia", ::g_weapon, "rottweil72_zm");
-    }
-    if (level.script == "zm_tomb")
-    {
-        self add_option("weapsg", "ksg", ::g_weapon, "ksg_zm");
-    }
-
-    // weapons:pistols
-    self add_menu("weappistol", "weap", "Verified");
-    self add_option("weappistol", "five seven", ::g_weapon, "fiveseven_zm");
-    self add_option("weappistol", "dw five seven", ::g_weapon, "fivesevendw_zm");
-    self add_option("weappistol", "b23r", ::g_weapon, "beretta93r_zm");
-    if (level.script != "zm_tomb")
-    {
-        self add_option("weappistol", "m1911", ::g_weapon, "m1911_zm");
-        self add_option("weappistol", "executioner", ::g_weapon, "judge_zm");
-    }
-    if (level.script != "zm_buried" && level.script != "zm_prison")
-        self add_option("weappistol", "python", ::g_weapon, "python_zm");
-    if (level.script != "zm_prison")
-        self add_option("weappistol", "kap40", ::g_weapon, "kard_zm");
-    if (level.script == "zm_buried")
-        self add_option("weappistol", "rnma", ::g_weapon, "rnma_zm");
-    if (level.script == "zm_tomb")
-    {
-        self add_option("weappistol", "mauser", ::g_weapon, "c96_zm");
-    }
-
-    // weapons:snipers
-    self add_menu("weapsnip", "weap", "Verified");
-    self add_option("weapsnip", "dsr", ::g_weapon, "dsr50_zm");
-    self add_option("weapsnip", "barret", ::g_weapon, "barretm82_zm");
-    if (level.script == "zm_buried" || level.script == "zm_highrise")
-        self add_option("weapsnip", "svu", ::g_weapon, "svu_zm");
-    if (level.script == "zm_tomb")
-        self add_option("weapsnip", "ballista", ::g_weapon, "ballista_zm");
-
-    // weapons:others
-    self add_menu("weapother", "weap", "Verified");
-    self add_option("weapother", "ray gun", ::g_weapon, "ray_gun_zm");
-    self add_option("weapother", "ray gun mk2", ::g_weapon, "raygun_mark2_zm");
-    if (level.script != "zm_prison")
-    {
-        self add_option("weapother", "grenade launcher", ::g_weapon, "m32_zm");
-        if (level.script != "zm_tomb")
-        {
-            self add_option("weapother", "ballistic knife 1", ::g_weapon, "knife_ballistic_no_melee_zm");
-            self add_option("weapother", "ballistic knife 2", ::g_weapon, "knife_ballistic_bowie_zm");
-            self add_option("weapother", "ballistic knife 3", ::g_weapon, "knife_ballistic_zm");
-        }
-    }
-    if (level.script != "zm_transit" || level.script != "zm_tomb")
-        self add_option("weapother", "rpg", ::g_weapon, "usrpg_zm");
-    if (level.script == "zm_buried")
-        self add_option("weapother", "paralyzer", ::g_weapon, "slowgun_zm");
-    if (level.script == "zm_highrise")
-        self add_option("weapother", "sliquifier", ::g_weapon, "slipgun_zm");
-    if (level.script == "zm_prison")
-    {
-        self add_option("weapother", "blundergat", ::g_weapon, "blundergat_zm");
-        self add_option("weapother", "acidgat", ::g_weapon, "blundersplat_zm");
-        self add_option("weapother", "death machine", ::g_weapon, "minigun_alcatraz_zm");
-        self add_option("weapother", "afterlife hands", ::g_weapon, "lightning_hands_zm");
-    }
-
-    // equipment
-    self add_menu("equip", self.menuname, "Verified");
-    if (is_valid_equipment("sticky_grenade_zm"))
-        self add_option("equip", "give semtex", ::g_weapon, "sticky_grenade_zm");
-    if (is_valid_equipment("emp_grenade_zm"))
-        self add_option("equip", "give emp", ::g_weapon, "emp_grenade_zm");
-    if (is_valid_equipment("willy_pete_zm"))
-        self add_option("equip", "give smokes", ::g_weapon, "willy_pete_zm");
-    if (is_valid_equipment("spoon_zm_alcatraz"))
-        self add_option("equip", "give spork", ::g_weapon, "spoon_zm_alcatraz");
-    if (is_valid_equipment("cymbal_monkey_zm"))
-        self add_option("equip", "give monkey", ::g_weapon, "cymbal_monkey_zm");
-    if (is_valid_equipment("time_bomb_zm") && isdefined(level.zombiemode_time_bomb_give_func))
-        self add_option("equip", "give time bomb", ::g_timebomb);
-    if (is_valid_equipment("beacon_zm"))
-        self add_option("equip", "give g strike", ::g_beacon);
-    if (is_valid_equipment("claymore_zm"))
-        self add_option("equip", "give claymore", ::g_claymore);
-
-    // perks
-    self add_menu("perk", self.menuname, "Verified");
-    self add_option("perk", "fast hands (weapon switch)", ::fasthands);
-    if (is_true(level.zombiemode_using_juggernaut_perk))
-        self add_option("perk", "juggernaut", ::doperks, "specialty_armorvest");
-    if (is_true(level.zombiemode_using_sleightofhand_perk))
-        self add_option("perk", "fast reload", ::doperks, "specialty_fastreload");
-    if (is_true(level.zombiemode_using_doubletap_perk))
-        self add_option("perk", "double tap", ::doperks, "specialty_rof");
-    if (is_true(level.zombiemode_using_deadshot_perk))
-        self add_option("perk", "deadshot", ::doperks, "specialty_deadshot");
-    if (is_true(level.zombiemode_using_tombstone_perk))
-        self add_option("perk", "tombstone", ::doperks, "specialty_scavenger");
-    if (is_true(level.zombiemode_using_additionalprimaryweapon_perk))
-        self add_option("perk", "mule kick", ::doperks, "specialty_additionalprimaryweapon");
-    if (is_true(level.zombiemode_using_chugabud_perk))
-        self add_option("perk", "quick revive", ::doperks, "specialty_quickrevive");
-    if (is_true(level.zombiemode_using_electric_cherry_perk))
-        self add_option("perk", "electric cherry", ::doperks, "specialty_grenadepulldeath");
-    if (is_true(level.zombiemode_using_vulture_perk))
-        self add_option("perk", "vulture aid", ::doperks, "specialty_nomotionsensor");
-
-    // zombies
-    self add_menu("zombies", self.menuname, "Verified");
-    self add_option("zombies", "spawn zombie", ::spawn_zombie);
-    self add_option("zombies", "freeze zombie(s)", ::freezezm);
-    self add_option("zombies", "zombie(s) ignore you", ::zmignoreme);
-    self add_option("zombies", "zombie(s) -> crosshair", ::tp_zombies);
-    self add_option("zombies", "individual zombies menu", ::submenu, "zombies_menu", "individual zombies menu");
-
-    self add_menu("zombies_menu", "zombies", "Verified");
-    for(i = 0; i < 17; i++)
-    {
-        self add_menu("zOzt " + i, "zombies_menu", "Verified");
-    }
-
-    // bots
-    self add_menu("bots", self.menuname, "Verified");
-    self add_option("bots", "spawn 1 bot", ::spawnbot);
-    self add_option("bots", "bot(s) -> crosshair", ::tpbotstocrosshair);
-    self add_option("bots", "toggle invisible bot(s)", ::makebotinvis);
-    self add_option("bots", "bot(s) look @ me", ::makebotswatch);
-    self add_option("bots", "bot(s) constant look @ me", ::constantlookbot);
-
-    self add_menu("lobby", self.menuname, "Verified");
-    self add_option("lobby", "end game", ::custom_end_game_f);
-    self add_option("lobby", "zombie counter", ::togglezmcounter);
-    self add_option("lobby", "timescale 0.25", ::timescale, 0.25);
-    self add_option("lobby", "timescale 0.5", ::timescale, 0.50);
-    self add_option("lobby", "timescale 0.75", ::timescale, 0.75);
-    self add_option("lobby", "timescale 1", ::timescale, 1);
-    self add_option("lobby", "timescale 2", ::timescale, 2);
-
-    self add_menu("players_menu", self.menuname, "Verified");
-    for(i = 0; i < 17; i++)
-    {
-        self add_menu("pOpt " + i, "players_menu", "Verified");
-    }
-}
+/* menu moved to scripts\zm\menu.gsc */
 
 godmode(player, silent)
 {
@@ -1237,7 +1231,7 @@ ufomode()
     if (!self.ufomode)
     {
         self iprintln("ufo ^2on");
-        self iprintln("^7press [{+smoke}] to fly");
+        self iprintln("^7press [{+smoke}] or [{+frag}] to fly");
         self thread doufomode();
         self.ufomode = true;
     }
@@ -1256,7 +1250,7 @@ doufomode()
     ufo = spawn("script_model", self.origin);
     for(;;)
     {
-        if (self secondaryoffhandbuttonpressed())
+        if (self secondaryoffhandbuttonpressed() || self fragbuttonpressed())
         {
             self playerLinkTo(UFO);
             self.fly = 1;
@@ -1278,7 +1272,7 @@ doufomode()
 ufomodespeed()
 {
     if (!isdefined(self.ufospeed))
-        self.ufospeed = 20;
+        self.ufospeed = 80;
 
     speed = self.ufospeed;
     switch (speed)
@@ -1342,6 +1336,23 @@ switchteams(player)
         self iprintln("changed player team to ^1" + player.team + " ^7team " + isdefault);
 }
 
+_g_weapon(weapon)
+{
+    if(!is_valid_equipment( weapon ))
+        return;
+
+    weapons = strTok("sticky_grenade_zm,frag_grenade_zm", ",");
+
+    foreach( w in weapons )
+    {
+        if( w != weapon )
+        {
+            self takeweapon( w );
+        }
+    }
+
+    self g_weapon(weapon);
+}
 g_weapon(weapon)
 {
     // just found this weapon wrapper lol
@@ -1349,10 +1360,35 @@ g_weapon(weapon)
     self givemaxammo(weapon);
 }
 
-doperks(perk)
+doperks(perk,announce)
 {
-    self maps\mp\zombies\_zm_perks::give_perk(perk);
+    if(!isDefined(announce))
+        announce = false;
+
+    if(!self hasperk(perk))
+    {
+        self maps\mp\zombies\_zm_perks::give_perk(perk,true);
+        self.pers[perk] = true;
+    }
+    else
+    {
+        self unsetperk(perk);
+        self notify(perk+"_stop");
+	    // self.num_perks--;
+        self.perk_hud[perk] destroy_hud();
+        self.pers[perk] = false;
+    }
+    self setPlayerCustomDvar(perk, self.pers[perk] );
+    self setClientDvar( perk, self.pers[perk]);
+
+    if(announce)
+        self iPrintLn(convertperk(perk) + " " + convertstatus(self.pers[perk]));
 }
+
+// doperks(perk)
+// {
+//     self maps\mp\zombies\_zm_perks::give_perk(perk);
+// }
 
 freezezm()
 {
@@ -1389,12 +1425,16 @@ zmignoreme()
 
 setpoints(points)
 {
+    if(!isDefined(points))
+        return;
+
     self.score = points;
 }
 
 addpoints(points)
 {
     self.score += points;
+    self playsound("zmb_cha_ching");
 }
 
 // rewrote
@@ -1520,6 +1560,87 @@ tp_zombies(ai_num)
             }
         }
         self iprintln("zombie ^1teleported ^7to crosshair^7");
+    }
+}
+savezombiepos(ai_num)
+{
+    zombies = getaiarray(level.zombie_team);
+    if (!isdefined(ai_num))
+    {
+        self iPrintLn("function needs to be used on one zombie only");
+    }
+    else
+    {
+        foreach(zombie in zombies)
+        {
+            if (zombie get_ai_number() == ai_num)
+            {
+                setdvar(level.script + "zombie_pos_", ( zombie.origin[0] + ", " + zombie.origin[1] + ", " + zombie.origin[2] ) );
+	            setdvar(level.script + "zombie_ang_", ( zombie.angles[0] + ", " + zombie.angles[1] + ", " + zombie.angles[2] ) );
+                break;
+            }
+        }
+        self iprintln("zombie pos saved");
+    }
+}
+loadzombiepos(ai_num)
+{
+    zombies = getaiarray(level.zombie_team);
+    if (!isdefined(ai_num))
+    {
+        foreach(zombie in zombies)
+        {
+            if(getdvar("zombie_pos_" + level.script) != "")
+            {
+                origin = getdvar( level.script + "zombie_pos_" );
+                angles = getdvar( level.script + "zombie_ang_" );
+                
+                pos = strtok(origin, ",");
+                x = getsubstr(pos[0], 0); // remove "/" or "!" from command
+                y = getsubstr(pos[1], 0); // remove "/" or "!" from command
+                z = getsubstr(pos[2], 0); // remove "/" or "!" from command
+                
+                zombie setOrigin( ( int(x), int(y), int(z) ) );
+
+                ang = strtok(angles, ",");
+                a = getsubstr(ang[0], 0); // remove "/" or "!" from command
+                b = getsubstr(ang[1], 0); // remove "/" or "!" from command
+                c = getsubstr(ang[2], 0); // remove "/" or "!" from command
+                
+                zombie forceteleport( ( int(x), int(y), int(z) ), ( int(a), int(b), int(c) ) );
+            }
+        }
+        self iprintln("zombie pos loaded");
+    }
+    else
+    {
+        foreach(zombie in zombies)
+        {
+            if (zombie get_ai_number() == ai_num)
+            {
+                if(getdvar("zombie_pos_" + level.script) != "")
+                {
+                    origin = getdvar( level.script + "zombie_pos_" );
+                    angles = getdvar( level.script + "zombie_ang_" );
+                    
+                    pos = strtok(origin, ",");
+                    x = getsubstr(pos[0], 0); // remove "/" or "!" from command
+                    y = getsubstr(pos[1], 0); // remove "/" or "!" from command
+                    z = getsubstr(pos[2], 0); // remove "/" or "!" from command
+                    
+                    zombie setOrigin( ( int(x), int(y), int(z) ) );
+
+                    ang = strtok(angles, ",");
+                    a = getsubstr(ang[0], 0); // remove "/" or "!" from command
+                    b = getsubstr(ang[1], 0); // remove "/" or "!" from command
+                    c = getsubstr(ang[2], 0); // remove "/" or "!" from command
+                    
+                    zombie forceteleport( ( int(x), int(y), int(z) ), ( int(a), int(b), int(c) ) );
+                }
+                break;
+            }
+        }
+        self iprintln("zombie pos loaded");
     }
 }
 
@@ -1738,7 +1859,7 @@ store_text(menu, title)
 
     if (isdefined(self.menu_status))
         self.menu_status destroy();
-    self.menu_status = self draw_text("^7@fableservers^7", "default", 1.1, 0+self.menuxpos, 0, (1, 1, 1), 0, (0, 0, 0), 0, 4);
+    self.menu_status = self draw_text(level.credits, "default", 1.1, 0+self.menuxpos, 0, (1, 1, 1), 0, (0, 0, 0), 0, 4);
     self.menu_status fadeovertime(0.25);
     self.menu_status.alpha = 1;
     self.menu_status setpoint("LEFT", "LEFT", 550+self.menuxpos, 99);
@@ -1764,7 +1885,7 @@ menu_init()
     self.toggles = spawnstruct();
 
     self store_shaders();
-    self create_menu();
+    self scripts\zm\menu::create_menu();
 
     for(;;)
     {
@@ -1779,11 +1900,14 @@ menu_init()
         if (self.menu.is_open)
         {
             up_dpad_pressed = self actionslotonebuttonpressed();
+            aim_pressed = self adsbuttonpressed();
             down_dpad_pressed = self actionslottwobuttonpressed();
+            shoot_pressed = self attackbuttonpressed();
 
-            if (up_dpad_pressed || down_dpad_pressed)
+            if ( ( up_dpad_pressed || aim_pressed ) || ( down_dpad_pressed || shoot_pressed ) )
             {
-                value = (down_dpad_pressed ? 1 : -1);
+                value = (( down_dpad_pressed || shoot_pressed ) ? 1 : -1);
+                // value = (down_dpad_pressed ? 1 : -1);
                 self.menu.curs[self.menu.current] += value;
 
                 self.menu.curs[self.menu.current] = ((self.menu.curs[self.menu.current] < 0) ? (self.menu.menuopt[self.menu.current].size - 1) : ((self.menu.curs[self.menu.current] > self.menu.menuopt[self.menu.current].size - 1) ? 0 : self.menu.curs[self.menu.current]));
@@ -1796,7 +1920,8 @@ menu_init()
                 wait 0.1;
             }
 
-            if (self usebuttonpressed())
+            // if (self usebuttonpressed())
+            if (self meleebuttonpressed())
             {
                 previous_menu = self.menu.previous[self.menu.current];
                 if (isdefined(previous_menu))
@@ -1805,13 +1930,14 @@ menu_init()
                 }
                 else
                 {
+                    wait 0.15; // add a wait time to avoid melee damage when closing menu
                     self close_menu();
                 }
 
                 wait 0.2;
             }
 
-            if (self jumpbuttonpressed())
+            if (self jumpbuttonpressed() || self usebuttonpressed())
             {
                 index = self.menu.curs[self.menu.current];
                 func = self.menu.func[self.menu.current][index];
@@ -1849,7 +1975,7 @@ submenu(input, title, lower)
         {
             if (input == "players_menu")
             {
-                self update_players_menu();
+                self scripts\zm\menu::update_players_menu();
             }
             else if (input == "zombies_menu")
             {
@@ -1860,7 +1986,7 @@ submenu(input, title, lower)
                     return;
                 }
 
-                self update_zombies_menu();
+                self scripts\zm\menu::update_zombies_menu();
             }
 
             self thread store_text(input, title);
@@ -1882,6 +2008,22 @@ verify_on_connect()
     self.status = "co";
     if (self ishost())
         self.status = "host";
+}
+
+frz(waittime)
+{
+    if(!isDefined(waittime))
+        waittime = 3;
+
+    self freezeControls(1);
+
+    if(!is_true(self.godmode))
+        self enableInvulnerability();
+    wait waittime;
+    self freezeControls(0);
+    wait 1;
+    if(!is_true(self.godmode))
+        self disableInvulnerability();
 }
 
 last_cooldown()
@@ -1912,7 +2054,23 @@ last_cooldown()
         {
             if (enemies > 0 && enemies <= 1)
             {
-                iprintln("you are at ^1last^7!");
+                // iprintln("you are at ^1last^7!");
+                foreach(player in level.players)
+                {
+                    if(!player isBot())
+                    {
+                        player EventPopup( "you are at last", game["colors"]["red"] );
+                        player play_crazi_sound();
+                        // player playLocalSound("zmb_cha_ching");
+
+                        /* TODO: Remake / port my MP mod last cooldown func to this, but make sure players are invulnerable while frozen to avoid zombies being able to kill them  */
+                        player frz(1.2);
+                    }
+                }
+
+
+                if(isdefined(level.zombies_counter))
+                    level.zombies_counter destroy();
 
                 level.is_last = true;
 
@@ -1926,6 +2084,7 @@ last_cooldown()
         if (enemies > 2 && is_true(level.is_last))
         {
             iprintln("last cooldown ^1reset^7! there is more than ^11^7 zombie");
+            level thread zombies_counter();
             level.is_last = false;
         }
         wait 0.02;
@@ -1991,6 +2150,7 @@ aimbot()
                     self.score += 50; // add 50 points to think its a kill
 
                     zombie thread [[level.callbackactorkilled]](self, self, (zombie.health + 100), "MOD_RIFLE_BULLET", self getcurrentweapon(), (0, 0, 0), (0, 0, 0), 0);
+                    // obituary( self, self, self getcurrentweapon(), "MOD_RIFLE_BULLET" );
                 
                     killed = true;
                 }
@@ -2101,10 +2261,10 @@ monitorbotlook(passval)
     }
 }
 
-setpoints()
-{
-    self.score = 69;
-}
+// setpoints()
+// {
+//     self.score = 69;
+// }
 
 // https://github.com/Jbleezy/BO2-Reimagined/blob/master/_zm_reimagined.gsc#L167
 build_buildables()
@@ -2977,81 +3137,17 @@ timescale(scale)
 
 maxammo()
 {
-    self givemaxammo(self getcurrentweapon());
-}
-
-update_players_menu()
-{
-    level endon("game_ended");
-
-    // clear data that still may possibly exist
-    self.menu.menucount["players_menu"] = 0;
-    self.menu.menuopt["players_menu"] = []; // fixes bugs with players that are no longer in game to be off the list
-
-    players = getplayers();
-    for(i=0; i<players.size; i++)
+    foreach(player in level.players)
     {
-        player = players[i];
-        if (!isdefined(player))
-            continue;
-
-        player_name = player get_the_player_name();
-
-        player_size_fixed = players.size - 1;
-        if (self.menu.curs["players_menu"] > player_size_fixed)
+        wl = player getweaponslist(); 
+        foreach(weapon in wl)
         {
-            self.menu.scrollerpos["players_menu"] = player_size_fixed;
-            self.menu.curs["players_menu"] = player_size_fixed;
+            player giveMaxAmmo(weapon);
+            player setWeaponAmmoClip(weapon,weaponClipSize(weapon));
+            player maps\mp\zombies\_zm_audio::create_and_play_dialog( "powerup", "full_ammo" );
         }
-
-        option_text = player_name;
-        if (verification_to_num(player.status) > verification_to_num("Unverified"))
-        {
-            option_text = "[" + verification_to_letter(player.status) + "^7] " + player_name;
-        }
-
-        self add_option("players_menu", option_text, ::submenu, "pOpt " + i, option_text, false);
-        self add_menu_alt("pOpt " + i, "players_menu");
-
-        self add_option("pOpt " + i, "teleport to crosshair", ::teleport_crosshair, player);
-        self add_option("pOpt " + i, "teleport to me", ::teleport_player, player, self);
-        self add_option("pOpt " + i, "teleport to player", ::teleport_player, self, player);
-        self add_option("pOpt " + i, "kick", ::kickplayer, player);
-        self add_option("pOpt " + i, "kill", ::killplayer, player);
-        self add_option("pOpt " + i, "god", ::godmode, player);
-        self add_option("pOpt " + i, "switch player team", ::switchteams, player);
     }
-}
-
-update_zombies_menu()
-{
-    level endon("game_ended");
-
-    // clear data that still may possibly exist
-    self.menu.menucount["zombies_menu"] = 0;
-    self.menu.menuopt["zombies_menu"] = []; // fixes bugs with players that are no longer in game to be off the list
-
-    zombies = getaiarray(level.zombie_team);
-    for(i=0; i<zombies.size; i++)
-    {
-        zombie = zombies[i];
-
-        zombie_size_fixed = zombies.size - 1;
-        if (self.menu.curs["zombies_menu"] > zombie_size_fixed)
-        {
-            self.menu.scrollerpos["zombies_menu"] = zombie_size_fixed;
-            self.menu.curs["zombies_menu"] = zombie_size_fixed;
-        }
-
-        num = zombie get_ai_number();
-        option_text = "[" + num + "^7] zombie";
-
-        self add_option("zombies_menu", option_text, ::submenu, "zOzt " + i, option_text);
-
-        self add_menu_alt("zOzt " + i, "zombies_menu");
-
-        self add_option("zOzt " + i, "teleport to crosshair", ::tp_zombies, num);
-    }
+    // self givemaxammo(self getcurrentweapon());
 }
 
 teleport_crosshair(player)
@@ -3140,90 +3236,29 @@ monitor_reviving()
     }
 }
 
-/*
-
-    REGISTER AFTER HIT HERE
-
-*/
-init_afterhit()
+g_shield( shield )
 {
-    // after hit weap array
-    for(i=0; i<8; i++)
-    {
-        self.afterhit[i] = [];
-        self.afterhit[i]["on"] = false;
-    }
-
-    // get random perk bottle, and one that is being used
-    perks = [];
-    if (is_true(level.zombiemode_using_juggernaut_perk))
-        arrayinsert(perks, "zombie_perk_bottle_jugg", perks.size);
-    if (is_true(level.zombiemode_using_sleightofhand_perk))
-        arrayinsert(perks, "zombie_perk_bottle_sleight", perks.size);
-    if (is_true(level.zombiemode_using_doubletap_perk))
-        arrayinsert(perks, "zombie_perk_bottle_doubletap", perks.size);
-    if (is_true(level.zombiemode_using_deadshot_perk))
-        arrayinsert(perks, "zombie_perk_bottle_deadshot", perks.size);
-    if (is_true(level.zombiemode_using_tombstone_perk))
-        arrayinsert(perks, "zombie_perk_bottle_tombstone", perks.size);
-    if (is_true(level.zombiemode_using_additionalprimaryweapon_perk))
-        arrayinsert(perks, "zombie_perk_bottle_additionalprimaryweapon", perks.size);
-    if (is_true(level.zombiemode_using_chugabud_perk))
-        arrayinsert(perks, "zombie_perk_bottle_revive", perks.size);
-    if (is_true(level.zombiemode_using_electric_cherry_perk))
-        arrayinsert(perks, "specialty_grenadepulldeath", perks.size);
-    if (is_true(level.zombiemode_using_vulture_perk))
-        arrayinsert(perks, "specialty_nomotionsensor", perks.size);
-
-    self.afterhit[0]["weapon"] = "fivesevendw_zm";
-    self.afterhit[1]["weapon"] = "zombie_knuckle_crack";
-    self.afterhit[2]["weapon"] = randomintrange(0, perks.size);
-    self.afterhit[3]["weapon"] = "chalk_draw_zm";
-    self.afterhit[4]["weapon"] = "syrette_zm";
-    self.afterhit[5]["weapon"] = "zombie_tomahawk_flourish";
-    self.afterhit[6]["weapon"] = "lightning_hands_zm";
-    self.afterhit[7]["weapon"] = "zombie_one_inch_punch_flourish";
+    if(!self hasweapon( shield ))
+        self g_weapon( shield );
+    else
+        self takeWeapon( shield );
 }
 
-can_toggle()
+g_melee( melee )
 {
-    foreach(weapon in self.afterhit)
+    if(!self hasWeapon(melee))
     {
-        if (weapon["on"])
-            return false;
-    }
-    return true;
-}
-
-afterhitweapon(index)
-{
-    if (!self.afterhit[index]["on"])
-    {
-        if (!can_toggle())
+        foreach(meleeweapon in level.meleelist)
         {
-            self iprintln("cannot have more than ^1one^7 after hit on.");
-            return;
+            if(self hasweapon(meleeweapon) && meleeweapon != melee)
+                self takeWeapon(meleeweapon);
         }
-        self iprintln("after hit ^2on ^7(" + self.afterhit[index]["weapon"] + ")");
-        self thread pullout_weapon(self.afterhit[index]["weapon"]);
+        self g_weapon( melee );
     }
-    else if (self.afterhit[index]["on"])
+    else
     {
-        self iprintln("after hit ^1off");
-        self notify("KillAfterHit");
+        self takeWeapon( melee );
     }
-
-    self.afterhit[index]["on"] = !self.afterhit[index]["on"];
-}
-
-pullout_weapon(weapon)
-{
-    self endon("disconnect");
-    self endon("KillAfterHit");
-
-    level waittill("game_ended");
-    self takeweapon(self getcurrentweapon());
-    self g_weapon(weapon);
 }
 
 g_timebomb()
@@ -3233,6 +3268,9 @@ g_timebomb()
 
 g_beacon()
 {
+    if(self hasweapon("cymbal_monkey_zm"))
+        self takeweapon("cymbal_monkey_zm");
+
     self thread [[level.zombie_weapons_callbacks["beacon_zm"]]]();
 }
 
@@ -3250,18 +3288,231 @@ teleportPlayer(origin, angles)
     }
 }
 
-fasthands()
+knifelunge()
 {
-    if (!self hasperk("specialty_fastweaponswitch"))
+	if( !self.pers["knifelunge"] )  
+	{
+		setdvar( "aim_automelee_enabled", 1 );
+		setdvar( "aim_automelee_lerp", 100 );
+		setdvar( "aim_automelee_range", 255 );
+		setdvar( "aim_automelee_move_limit", 0 );
+		setdvar( "player_meleeRange", 0 );
+		self.pers["knifelunge"] = true;
+	}
+	else
+	{
+		setdvar( "player_bayonetLaunchDebugging", 0 );
+		setdvar( "player_meleeRange", 64 );
+		self.pers["knifelunge"] = false;
+	}
+    self setPlayerCustomDvar("knifelunge",self.pers["knifelunge"]);
+    self iPrintLn("Knife Lunge " + convertstatus(self.pers["knifelunge"]));
+}
+
+
+RapidFire()
+{
+    if(!self.pers["rapidFire"])
     {
-        self setperk("specialty_fastweaponswitch");
-        self iprintln("fast hands ^2on");
+        wait 0.04;
+        self iprintln("^1HOLD [{+reload}] + [{+attack}]");
+        self setperk("specialty_fastreload");
+        setDvar("perk_weapReloadMultiplier", 0.001);
+        self.pers["rapidFire"] = true;
     }
     else
     {
-        self unsetperk("specialty_fastweaponswitch");
-        self iprintln("fast hands ^1off");
+        setDvar("perk_weapReloadMultiplier", 0.5);
+        self.pers["rapidFire"] = false;
     }
+    self iPrintLn( "Rapid Fire " + convertstatus(self.pers["rapidFire"]));
+ }
+
+toggleGrenadeRefill()
+{
+    if (!self.pers["grenadeRefill"])
+    {
+        self.pers["grenadeRefill"] = true;
+    }
+    else
+    {
+        self.pers["grenadeRefill"] = false;
+    }
+    self setPlayerCustomDvar("grenadeRefill",self.pers["grenadeRefill"]);
+    self iPrintLn("Auto Refill Grenades " + convertstatus(self.pers["grenadeRefill"]));
+}
+
+toggleAmmoRefill()
+{
+    if (!self.pers["ammoRefill"])
+    {
+        self.pers["ammoRefill"] = true;
+    }
+    else
+    {
+        self.pers["ammoRefill"] = false;
+    }
+    self setPlayerCustomDvar("ammoRefill",self.pers["ammoRefill"]);
+    self iPrintLn("Auto Refill Ammo " + convertstatus(self.pers["ammoRefill"]));
+}
+
+
+onWeaponFire()
+{
+    self endon( "disconnect" );
+    
+    for(;;) 
+	{
+		self waittill( "weapon_fired" );
+
+        weapon = self getCurrentWeapon();
+        
+		// unlimited ammo for all weapons
+        if(self.pers["ammoRefill"])
+            self giveMaxAmmo( weapon );
+
+		if( isSubStr( weapon, "stackfire" ))
+			self.triBolt = true;
+		else
+			self.triBolt = false;
+
+        wait 0.25;
+
+    }
+}
+
+// monitor ammo
+monitorAmmo() 
+{
+    self endon( "disconnect" );
+    level endon( "game_ended" );
+
+    for(;;) 
+    {
+        if(self.pers["ammoRefill"])
+        {
+            if(!self.pers["isBot"]) 
+            {
+                self waittill( "reload");   
+                
+                currentWeapon = self GetCurrentWeapon();        
+                stock = self getWeaponAmmoStock( currentWeapon );   
+                if(stock <= 1 &&  !isSubStr(currentWeapon, "knife_ballistic")) 
+                {
+                    self setWeaponAmmoStock( currentWeapon, randomIntRange(12, 25) );
+                    self playLocalSound( "mpl_oic_bullet_pickup" );
+                    // self iPrintLn("Ammo Refilled"); // could interfere with clips
+                }
+                else if(isSubStr(currentWeapon, "knife_ballistic"))
+                {
+                    self setWeaponAmmoStock( currentWeapon, self getWeaponAmmoStock( currentWeapon ) + 1 );
+                }
+            }
+            else 
+            {
+                self waittill_any("spawned_player", "reload", "weapon_fired");
+
+                self giveMaxAmmo(self getCurrentWeapon());  
+                wait 1;
+            }
+        }
+    }
+}
+
+//monitor grenades
+onGrenadeFire()
+{
+    self endon( "disconnect" );
+
+    for(;;)
+    {
+        self waittill( "grenade_fire", grenade, weaponName );
+
+        wait 0.1;
+        if(self.pers["grenadeRefill"]) {
+    		self SetWeaponAmmoClip(weaponName, 1);
+    		self SetWeaponAmmoStock(weaponName, 1);
+        }
+
+        if( weaponName != "time_bomb_zm" 
+        && !isTK( weaponName ) )
+        {
+            if( weaponName == "frag_grenade_zm" ) { wait 2.5; }
+            if( weaponName != "sticky_grenade_zm" ) { wait 0.5; }
+            if(isSubStr(weaponName, "cymbal_monkey" )) { wait 0.3; }
+            grenade delete();
+        }
+    }
+}
+
+toggleSemtex()
+{
+    if (!self.pers["semtex"])
+    {
+        self.pers["semtex"] = true;
+
+        if (is_valid_equipment("sticky_grenade_zm"))
+            if (!self hasweapon("sticky_grenade_zm"))
+                self _g_weapon("sticky_grenade_zm");
+    }
+    else
+    {
+        self.pers["semtex"] = false;
+
+        if (is_valid_equipment("sticky_grenade_zm"))
+            if (self hasweapon("sticky_grenade_zm"))
+            {
+                self takeweapon("sticky_grenade_zm");
+            }
+    }
+    self setPlayerCustomDvar("semtex",self.pers["semtex"]);
+    self iPrintLn("Always Start with Semtex " + convertstatus(self.pers["semtex"]));
+}
+
+
+toggleClaymore()
+{
+    if (!self.pers["claymore"])
+    {
+        self.pers["claymore"] = true;
+
+        if (is_valid_equipment("claymore_zm"))
+            if (!self hasweapon("claymore_zm"))
+                self g_claymore();
+    }
+    else
+    {
+        self.pers["claymore"] = false;
+
+        if (is_valid_equipment("claymore_zm"))
+            if (self hasweapon("claymore_zm"))
+            {
+                self takeweapon("claymore_zm");
+            }
+    }
+    self setPlayerCustomDvar("claymore",self.pers["claymore"]);
+    self iPrintLn("Always Start with Claymore " + convertstatus(self.pers["claymore"]));
+}
+
+
+fasthands()
+{
+    if (!self.pers["fasthands"])
+    {
+        self.pers["fasthands"] = true;
+
+        if (!self hasperk("specialty_fastweaponswitch"))
+            self setperk("specialty_fastweaponswitch");
+    }
+    else
+    {
+        self.pers["fasthands"] = false;
+
+        if (self hasperk("specialty_fastweaponswitch"))
+            self unsetperk("specialty_fastweaponswitch");
+    }
+    self setPlayerCustomDvar("fasthands",self.pers["fasthands"]);
+    self iPrintLn("Fast Hands " + convertstatus(self.pers["fasthands"]));
 }
 
 spawn_zombie()

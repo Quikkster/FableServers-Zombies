@@ -1,3 +1,52 @@
+#include maps\mp\_utility;
+#include common_scripts\utility;
+#include maps\mp\gametypes_zm\_hud_util;
+#include maps\mp\gametypes_zm\_hud_message;
+#include maps\mp\zombies\_zm;
+#include maps\mp\zombies\_zm_audio;
+#include maps\mp\zombies\_zm_score;
+#include maps\mp\zombies\_zm_spawner;
+#include maps\mp\gametypes_zm\_globallogic_spawn;
+#include maps\mp\gametypes_zm\_spectating;
+#include maps\mp\_challenges;
+#include maps\mp\gametypes_zm\_globallogic;
+#include maps\mp\gametypes_zm\_globallogic_audio;
+#include maps\mp\gametypes_zm\_spawnlogic;
+#include maps\mp\gametypes_zm\_rank;
+#include maps\mp\gametypes_zm\_weapons;
+#include maps\mp\gametypes_zm\_spawning;
+#include maps\mp\gametypes_zm\_globallogic_utils;
+#include maps\mp\gametypes_zm\_globallogic_player;
+#include maps\mp\gametypes_zm\_globallogic_ui;
+#include maps\mp\gametypes_zm\_globallogic_score;
+#include maps\mp\gametypes_zm\_persistence;
+#include maps\mp\zombies\_zm_weapons;
+#include maps\mp\zombies\_zm_utility;
+
+#include scripts\zm\functions;
+#include scripts\zm\killcam;
+#include scripts\zm\_utility;
+
+setDvarIfUninitialized(dvar, value){
+	if(!IsInizialized(dvar))
+		setDvar(dvar, value);
+}
+
+SetDvarIfNotInitialized(dvar, value){
+	if(!IsInizialized(dvar))
+		setDvar(dvar, value);
+}
+
+SetDvarIfNotInizialized(dvar, value){
+	if(!IsInizialized(dvar))
+		setDvar(dvar, value);
+}
+
+IsInizialized(dvar){
+	result = getDvar(dvar);
+	return result != undefined || result != "";
+} 
+
 get_number_of_zombies()
 {
     return (maps\mp\zombies\_zm_utility::get_round_enemy_array().size + level.zombie_total);

@@ -14,6 +14,9 @@ main()
 
 init()
 {
+    if(level.script != "zm_buried")
+		return;
+		
     if ( isDefined( level.jail_open_door ) )
     {
 	    players = get_players();
@@ -23,7 +26,9 @@ init()
         maps\mp\zm_buried_gamemodes::deleteslothbarricades(0);
         level notify( "jail_barricade_down" );
 
-        iPrintLn(level.jail_barricade_down);
+    	flag_set( "courtyard_fountain_broken" );
+	    flag_set( "fountain_transport_active" );
+        maps\mp\zm_buried_fountain::destroy_maze_fountain();
     }
 }
 

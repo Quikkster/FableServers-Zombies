@@ -2,15 +2,21 @@
 
 main()
 {
-    replacefunc(maps\mp\zombies\_zm_utility::has_player_equipment, ::has_player_equipment_hook);
+	if(level.script == "zm_highrise")
+	{
+		replacefunc(maps\mp\zombies\_zm_utility::has_player_equipment, ::has_player_equipment_hook);
 
-    // trample steam
-    replacefunc(maps\mp\zombies\_zm_equip_springpad::pickupspringpad, ::pickupspringpad_hook);
-    replacefunc(maps\mp\zombies\_zm_equip_springpad::watchspringpaduse, ::watchspringpaduse_hook);
+		// trample steam
+		replacefunc(maps\mp\zombies\_zm_equip_springpad::pickupspringpad, ::pickupspringpad_hook);
+		replacefunc(maps\mp\zombies\_zm_equip_springpad::watchspringpaduse, ::watchspringpaduse_hook);
+	}
 }
 
 init()
 {
+	if(level.script != "zm_highrise")
+		return;
+
     level thread onPlayerConnect();
 }
 
