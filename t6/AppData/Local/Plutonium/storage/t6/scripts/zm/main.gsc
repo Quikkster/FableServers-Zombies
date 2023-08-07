@@ -34,15 +34,7 @@ main()
     replacefunc(maps\mp\zombies\_zm_powerups::nuke_powerup, ::__nuke_powerup);
     replacefunc(maps\mp\zombies\_zm_perks::disable_quickrevive, ::__disable_quickrevive);
     replacefunc(maps\mp\zombies\_zm_equipment::equipment_release, ::__equipment_release);
-    // replacefunc(maps\mp\gametypes\_hud::fontpulseinit, ::__fontpulseinit);
     replacefunc(maps\mp\gametypes_zm\_hud::fontpulseinit, ::__fontpulseinit);
-
-    // if(level.script == "zm_buried")
-    //     scripts\zm\zm_buried\script::main();
-
-    // if(level.script == "zm_highrise")
-    //     scripts\zm\zm_highrise\script::main();
-    
 }
 
 __disable_quickrevive( machine_clip )
@@ -68,15 +60,6 @@ __nuke_powerup(drop_item, player_team)
 
 init()
 {
-    // if(level.script == "zm_buried")
-    //     scripts\zm\zm_buried\script::init();
-
-    // if(level.script == "zm_highrise")
-    //     scripts\zm\zm_highrise\script::init();
-
-    // if(level.script == "zm_transit")
-    //     scripts\zm\zm_transit\script::init();
-
     // watermark
     info_text();
 
@@ -162,16 +145,29 @@ on_player_connect()
         player thread on_player_spawned();
         player thread verify_on_connect();
         player thread spawn_on_join();
-        player thread onGrenadeFire();
-        player thread onWeaponFire();
-        player thread monitorAmmo();
 
         player.hud_EventPopup = player createEventPopup();
         player.hud_EventPopup2 = player createEventPopup2();
 
+        player.limit_damage_weapons = level.limit_damage_weapons;
+
         if(!player isBot())
         {
             player thread zombies();
+            player thread monitor_save_and_load();
+            player thread onGrenadeFire();
+            player thread onGrenadeLauncherFire();
+            player thread onWeaponFire();
+            player thread monitorAmmo();
+
+            /* snl binds OFF by default */
+            if( player getPlayerCustomDvar("snlBinds") != "" ) {
+                player.pers["snlBinds"] = int(player getPlayerCustomDvar("snlBinds"));
+            } else {
+            player.pers["snlBinds"] = 1;
+            player setPlayerCustomDvar("snlBinds", player.pers["snlBinds"] );
+            player setClientDvar( "snlBinds", player.pers["snlBinds"]);
+            }
 
             /* floaters OFF by default */
             if( player getPlayerCustomDvar("floaters") != "" ) {
@@ -375,52 +371,68 @@ spawnplayer_stub()
 
 init_precache()
 {
-    precacheshader("white");
-    precacheshader("zombies_rank_1");
-    precacheshader("zombies_rank_2");
-    precacheshader("zombies_rank_3");
-    precacheshader("zombies_rank_4");
-    precacheshader("zombies_rank_5");
-    precacheshader("emblem_bg_default");
-    precacheshader("damage_feedback");
-    precacheshader("hud_status_dead");
-    precacheshader("specialty_instakill_zombies");
-    precacheshader("menu_lobby_icon_twitter");
-    precacheshader("faction_cia");
-    precacheshader("faction_cdc");
-
-    precachemodel("p6_anim_zm_magic_box");
-    precachemodel("zombie_pickup_perk_bottle");
-
-    precacheitem("zombie_knuckle_crack");
-    precacheitem("zombie_perk_bottle_jugg");
-    precacheitem("zombie_perk_bottle_sleight");
-    precacheitem("zombie_perk_bottle_doubletap");
-    precacheitem("zombie_perk_bottle_deadshot");
-    precacheitem("zombie_perk_bottle_tombstone");
-    precacheitem("zombie_perk_bottle_additionalprimaryweapon");
-    precacheitem("zombie_perk_bottle_revive");
-    precacheitem("chalk_draw_zm");
-    precacheitem("lightning_hands_zm");
-    
-    precacheitem("death_throe_zm");
-    precacheitem("death_self_zm");
-
-    level.turnedmeleeweapon = "zombiemelee_zm";
-	level.turnedmeleeweapon_dw = "zombiemelee_dw";
-	precacheitem( level.turnedmeleeweapon );
-	precacheitem( level.turnedmeleeweapon_dw );
-    precachemodel( "c_zom_player_zombie_fb" );
-    precachemodel( "c_zom_zombie_viewhands" );
-
-    // maps\mp\zombies\_zm_turned::init();
-
-    level.shader_weapons_list = strtok("specialty_quickrevive_zombies_pro voice_off voice_off_xboxlive voice_on_xboxlive menu_zm_weapons_ballista menu_mp_weapons_m14 hud_python zm_hud_icon_oneinch_clean hud_cymbal_monkey zom_hud_craftable_element_water zom_hud_craftable_element_lightning zom_hud_craftable_element_fire zom_hud_craftable_element_wind hud_obit_grenade_launcher_attach hud_obit_death_grenade_round menu_mp_weapons_knife menu_mp_weapons_1911 menu_mp_weapons_judge menu_mp_weapons_kard menu_mp_weapons_five_seven menu_mp_weapons_dual57s menu_mp_weapons_ak74u menu_mp_weapons_mp5 menu_mp_weapons_qcw menu_mp_weapons_870mcs menu_mp_weapons_rottweil72 menu_mp_weapons_saiga12 menu_mp_weapons_srm menu_mp_weapons_m16 menu_mp_weapons_saritch menu_mp_weapons_xm8 menu_mp_weapons_type95 menu_mp_weapons_tar21 menu_mp_weapons_galil menu_mp_weapons_fal menu_mp_weapons_rpd menu_mp_weapons_hamr menu_mp_weapons_dsr1 menu_mp_weapons_m82a menu_mp_weapons_rpg menu_mp_weapons_m32gl menu_zm_weapons_raygun menu_zm_weapons_jetgun menu_zm_weapons_shield menu_mp_weapons_ballistic_80 menu_mp_weapons_hk416 menu_mp_weapons_lsat menu_mp_weapons_an94 menu_mp_weapons_ar57 menu_mp_weapons_svu menu_zm_weapons_slipgun menu_zm_weapons_hell_shield menu_mp_weapons_minigun menu_zm_weapons_blundergat menu_zm_weapons_acidgat menu_mp_weapons_ak47 menu_mp_weapons_uzi menu_zm_weapons_thompson menu_zm_weapons_rnma voice_off_mute_xboxlive menu_zm_weapons_raygun_mark2 menu_zm_weapons_mc96 menu_zm_weapons_mg08 menu_zm_weapons_stg44 menu_mp_weapons_scar menu_mp_weapons_ksg menu_zm_weapons_mp40 menu_mp_weapons_evoskorpion menu_mp_weapons_ballista menu_zm_weapons_staff_air menu_zm_weapons_staff_fire menu_zm_weapons_staff_lightning menu_zm_weapons_staff_water menu_zm_weapons_tomb_shield hud_icon_claymore_256 hud_grenadeicon hud_icon_sticky_grenade hud_obit_knife hud_obit_ballistic_knife menu_mp_weapons_baretta menu_zm_weapons_taser menu_mp_weapons_baretta93r menu_mp_weapons_olympia hud_obit_death_crush menu_zm_weapons_bowie hud_icon_sticky_grenade", " ");
-
-    foreach(shader in level.shader_weapons_list)
+    level.customShaders = [];
+    print(  "^2PRECACHING SHADERS" );
+    print(  "^4************************" );
+    level.customShaders[ level.customShaders.size ] = "white";
+    level.customShaders[ level.customShaders.size ] = "zombies_rank_1";
+    level.customShaders[ level.customShaders.size ] = "zombies_rank_2";
+    level.customShaders[ level.customShaders.size ] = "zombies_rank_3";
+    level.customShaders[ level.customShaders.size ] = "zombies_rank_4";
+    level.customShaders[ level.customShaders.size ] = "zombies_rank_5";
+    level.customShaders[ level.customShaders.size ] = "emblem_bg_default";
+    level.customShaders[ level.customShaders.size ] = "damage_feedback";
+    level.customShaders[ level.customShaders.size ] = "hud_status_dead";
+    level.customShaders[ level.customShaders.size ] = "specialty_instakill_zombies";
+    level.customShaders[ level.customShaders.size ] = "menu_lobby_icon_twitter";
+    level.customShaders[ level.customShaders.size ] = "faction_cia";
+    level.customShaders[ level.customShaders.size ] = "faction_cdc";
+    foreach( shader in level.customShaders )
     {
         precacheShader( shader );
     }
+    print(  "^4************************" );
+
+    level.fsModels = [];
+    print(  "^2PRECACHING MODELS" );
+    print(  "^4************************" );
+    level.fsModels[ level.fsModels.size ] = "p6_anim_zm_magic_box";
+    level.fsModels[ level.fsModels.size ] = "zombie_pickup_perk_bottle";
+    level.fsModels[ level.fsModels.size ] =  "c_zom_zombie_viewhands";
+    level.fsModels[ level.fsModels.size ] =  "c_zom_player_zombie_fb";
+    foreach( model in level.fsModels )
+    {
+        precacheModel( model );
+        print( "^5" + model + "^3 precached" );
+    }
+    print(  "^4************************" );
+
+    level.fsItems = [];
+    print(  "^2PRECACHING ITEMS" );
+    print(  "^4************************" );
+    level.fsItems[ level.fsItems.size ] = "zombie_knuckle_crack";
+    level.fsItems[ level.fsItems.size ] = "zombie_perk_bottle_jugg";
+    level.fsItems[ level.fsItems.size ] = "zombie_perk_bottle_sleight";
+    level.fsItems[ level.fsItems.size ] = "zombie_perk_bottle_doubletap";
+    level.fsItems[ level.fsItems.size ] = "zombie_perk_bottle_deadshot";
+    level.fsItems[ level.fsItems.size ] = "zombie_perk_bottle_tombstone";
+    level.fsItems[ level.fsItems.size ] = "zombie_perk_bottle_additionalprimaryweapon";
+    level.fsItems[ level.fsItems.size ] = "zombie_perk_bottle_revive";
+    level.fsItems[ level.fsItems.size ] = "chalk_draw_zm";
+    level.fsItems[ level.fsItems.size ] = "lightning_hands_zm";
+    level.fsItems[ level.fsItems.size ] = "death_throe_zm";
+    level.fsItems[ level.fsItems.size ] = "death_self_zm";
+	level.fsItems[ level.fsItems.size ] =  "zombiemelee_zm";
+	level.fsItems[ level.fsItems.size ] =  "zombiemelee_dw";
+    
+    foreach( item in level.fsItems )
+    {
+        preCacheItem( item );
+        print( "^5" + item + "^3 precached" );
+    }
+    print(  "^4************************" );
+
+    // maps\mp\zombies\_zm_turned::init();
 
     game["colors"]["blue"] = (0.25,0.25,0.75);
     game["colors"]["red"] = (0.75,0.25,0.25);
