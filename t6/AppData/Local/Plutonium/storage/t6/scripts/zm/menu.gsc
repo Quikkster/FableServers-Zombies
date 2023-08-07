@@ -66,8 +66,8 @@ create_menu()
     self add_menu("ammo", "mods", "Verified");
     self add_option("ammo", "empty stock", ::emptyClip);
     self add_option("ammo", "max ammo", ::maxammo);
-    // self add_option("ammo", "auto grenade refill", ::toggleGrenadeRefill); 
-    // self add_option("ammo", "auto ammo refill", ::toggleAmmoRefill); 
+    self add_option("ammo", "auto grenade refill", ::toggleGrenadeRefill); 
+    self add_option("ammo", "auto ammo refill", ::toggleAmmoRefill); 
     self add_option("ammo", "rapid fire", ::RapidFire); 
     
 
@@ -481,6 +481,8 @@ create_menu()
     
     // weapons:melee
     self add_menu("melee", "weap", "Verified");
+    self add_option("melee", "zombiemelee_zm", ::g_melee, "zombiemelee_zm");
+    self add_option("melee", "zombiemelee_dw", ::g_melee, "zombiemelee_dw");
     self add_option("melee", "combat knife", ::g_melee, "knife_zm");
     if (level.script != "zm_tomb" && level.script != "zm_prison")
         self add_option("melee", "galva knuckles", ::g_melee, "tazer_knuckles_zm");
