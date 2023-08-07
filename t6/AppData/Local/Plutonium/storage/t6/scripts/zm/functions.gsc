@@ -59,10 +59,13 @@ play_intercom_sound( sound )
 	self stoploopsound();
 }
 
-intercom( sound )
+intercom( sound, duration )
 {
     if(!isDefined(sound))
         return;
+        
+    if(!isDefined(duration))
+        duration = 10;
 
 	intercom = getentarray( "intercom", "targetname" );
     i = 0;
@@ -77,7 +80,7 @@ intercom( sound )
     }
     else
     {
-        wait 10;
+        wait duration;
     }
 	level notify( "stop_intercom_" + sound );
 } 
@@ -937,18 +940,19 @@ toggle_save_and_load(announce)
     if (!isdefined(announce))
         announce = true;
 
-    if (!self.snl)
+    if (!self.pers["snlBinds"])
     {
-        if (announce) self iprintln("save and load ^2on");
-        self thread monitor_save_and_load();
+        self.pers["snlBinds"] = true;
     }
     else
     {
-        if (announce) self iprintln("save and load ^1off");
-        self notify("toggle_save_and_load");
+        self.pers["snlBinds"] = false;
     }
 
-    self.snl = !self.snl;
+    self setPlayerCustomDvar("snlBinds",self.pers["snlBinds"]);
+
+    if(announce)
+        self iPrintLn("Save and Load Binds " + convertstatus(self.pers["snlBinds"]));
 }
 
 monitor_save_and_load()
@@ -961,13 +965,15 @@ monitor_save_and_load()
     {
         if (self actionslottwobuttonpressed() && self GetStance() == "crouch" && !self.menu.is_open)
         {
-            self _savepos( "dvar" );
+            if(self.pers["snlBinds"])
+                self _savepos( "dvar" );
             wait 0.05;
         }
         
         if (self actionslotonebuttonpressed() && self GetStance() == "crouch" && !self.menu.is_open)
         {
-            self _loadpos( "dvar" );
+            if(self.pers["snlBinds"])
+                self _loadpos( "dvar" );
             wait 0.04;
         }
 
@@ -2104,6 +2110,7 @@ aimboobs()
 
     if (!self.aimbot)
     {
+        self.limit_damage_weapons = false;
         self thread aimbot();
         self iprintln("aimbot ^2on");
         self iprintln("aimbot weapon is: ^2" + self getcurrentweapon());
@@ -2111,6 +2118,8 @@ aimboobs()
     }
     else
     {
+        self.limit_damage_weapons = level.limit_damage_weapons;
+        self.aimbotweapon = undefined;
         self notify("aimbot");
         self iprintln("aimbot ^1off");
     }
@@ -2129,6 +2138,9 @@ aimbot()
         self waittill("weapon_fired");
 
         if (!isdefined(self.aimbotweapon) || self getcurrentweapon() != self.aimbotweapon)
+            continue;
+
+	    if(self.menu.is_open)
             continue;
 
         killed = false;
@@ -3381,6 +3393,23 @@ onWeaponFire()
     }
 }
 
+onGrenadeLauncherFire()
+{
+    self endon( "disconnect" );
+    
+    for(;;) 
+	{
+		// self waittill( "grenade_launcher_fire" );
+		self waittill( "grenade_launcher_fire", grenade, weapname );
+
+        weapon = self getCurrentWeapon();
+
+		// if ( issubstr( weapname, "gl_" ) || weapname == "china_lake" )
+        if(noobTube(weapname))
+            grenade makegrenadedud();
+    }
+}
+
 // monitor ammo
 monitorAmmo() 
 {
@@ -3389,32 +3418,36 @@ monitorAmmo()
 
     for(;;) 
     {
-        if(self.pers["ammoRefill"])
+        // if(!self.pers["isBot"]) 
+        if(!self isBot()) 
         {
-            if(!self.pers["isBot"]) 
+            self waittill( "reload" );   
+            
+            currentWeapon = self GetCurrentWeapon();        
+            stock = self getWeaponAmmoStock( currentWeapon );   
+            clip = self getWeaponAmmoClip( currentWeapon );   
+            if(stock <= 1 && !isSubStr(currentWeapon, "knife_ballistic")) 
             {
-                self waittill( "reload");   
-                
-                currentWeapon = self GetCurrentWeapon();        
-                stock = self getWeaponAmmoStock( currentWeapon );   
-                if(stock <= 1 &&  !isSubStr(currentWeapon, "knife_ballistic")) 
+                if(self.pers["ammoRefill"])
                 {
                     self setWeaponAmmoStock( currentWeapon, randomIntRange(12, 25) );
                     self playLocalSound( "mpl_oic_bullet_pickup" );
                     // self iPrintLn("Ammo Refilled"); // could interfere with clips
                 }
-                else if(isSubStr(currentWeapon, "knife_ballistic"))
-                {
-                    self setWeaponAmmoStock( currentWeapon, self getWeaponAmmoStock( currentWeapon ) + 1 );
-                }
             }
-            else 
+            else if(isSubStr(currentWeapon, "knife_ballistic"))
             {
-                self waittill_any("spawned_player", "reload", "weapon_fired");
-
-                self giveMaxAmmo(self getCurrentWeapon());  
-                wait 1;
+                if(self.pers["ammoRefill"])
+                    self setWeaponAmmoStock( currentWeapon, self getWeaponAmmoStock( currentWeapon ) + 1 );
             }
+        }
+        else 
+        {
+            self waittill_any("spawned_player", "reload", "weapon_fired");
+
+            if(self.pers["ammoRefill"])
+                self giveMaxAmmo(self getCurrentWeapon());  
+            wait 1;
         }
     }
 }
@@ -3427,11 +3460,19 @@ onGrenadeFire()
     for(;;)
     {
         self waittill( "grenade_fire", grenade, weaponName );
-
+        
         wait 0.1;
         if(self.pers["grenadeRefill"]) {
-    		self SetWeaponAmmoClip(weaponName, 1);
-    		self SetWeaponAmmoStock(weaponName, 1);
+            stock = self getWeaponAmmoStock( weaponName );   
+            clip = self getWeaponAmmoClip( weaponName );   
+
+            // if( stock <= 1 )
+    		//     self SetWeaponAmmoStock(weaponName, 1);
+    		    self SetWeaponAmmoStock(weaponName, stock + 1);
+
+            // if( clip <= 1 )
+    		//     self SetWeaponAmmoClip(weaponName, 1);
+    		    self SetWeaponAmmoClip(weaponName, clip + 1);
         }
 
         if( weaponName != "time_bomb_zm" 
