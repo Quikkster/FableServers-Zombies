@@ -54,157 +54,35 @@ getClient()
     return result;
 }
 
-
-// MatchBonusInit()
-// {
-//     level waittill( "prematch_over" );
-//     foreach( player in level.players )
-//     {
-//         if(!player isBot())
-//             player thread watchmatchbonus();
-//     }
-// }
-// watchmatchbonus()
-// {
-//     if( getdvar( "g_gametype" ) == "sd" )
-//     {
-//         self endon( "death" );
-//     }
-//     self endon( "stop_calc_mb" );
-//     level endon( "game_ended" );
-//     self.timepassed = 1;
-//     for(;;)
-//     {
-//         self.timepassed++;
-//         wait 1;
-//         givecalcmatchbonus( self );
-//     }
-// }
-// givecalcmatchbonus()
-// {
-//     self.lozmb = floor( ( self.timepassed * getrank() + ( 1 + 6 ) ) / 12 );
-//     if( self.lozmb > 610 && getdvar( "g_gametype" ) == "sd" )
-//     {
-//         self.lozmb = 610;
-//     }
-//     if( self.lozmb > 3050 && getdvar( "g_gametype" ) == "dm" || getdvar( "g_gametype" ) == "tdm" )
-//     {
-//         self.lozmb = 3050;
-//     }
-//     self.matchbonus = self.lozmb;
-// }
-// stopcalcmatchbonus()
-// {
-//     if( !(self.stopmb) )
-//     {
-//         self.stopmb = 1;
-//         self iprintln( "Calculated Match Bonus ^1Stopped" );
-//         self notify( "stop_calc_mb" );
-//         self thread safestopmb();
-//     }
-//     else
-//     {
-//         self iprintln( "^1Warning^7 : Calculated Match Bonus Already Stopped" );
-//     }
-// }
-// safestopmb()
-// {
-//     level waittill( "prematch_over" );
-//     wait 1;
-//     self notify( "stop_calc_mb" );
-// }
-
-// matchBonusGenerator( trickshotter )
-// {
-// 	if(getClient() == "T6") 
-// 	{
-// 		// gamelength = level.timeLimit * 60;
-// 		// if ( !level.timeLimit || level.forcedEnd ) {
-			
-// 		// 	gamelength = getTimePassed() / 1000;
-// 		// 	gamelength = min( gamelength, 1200 );
-// 		// }
-
-// 		// level waittill_any("game_ended", "round_end_finished", "end_game");
-		
-// 		// calculation = floor(gamelength * (((trickshotter.pers["rank"] + 1) + 6) / 12));
-
-// 		// trickshotter.matchbonus = calculation;
-
-//         trickshotter.lozmb = floor( ( trickshotter.timepassed * getrank() + ( 1 + 6 ) ) / 12 );
-//         if( trickshotter.lozmb > 610 && getdvar( "g_gametype" ) == "sd" )
-//         {
-//             trickshotter.lozmb = 610;
-//         }
-//         if( trickshotter.lozmb > 3050 && getdvar( "g_gametype" ) == "dm" || getdvar( "g_gametype" ) == "tdm" )
-//         {
-//             trickshotter.lozmb = 3050;
-//         }
-//         trickshotter.matchbonus = trickshotter.lozmb;
-		
-// 		return trickshotter.matchbonus;
-// 	}	
-
-// 	else if(getClient() == "IW5") 
-// 	{
-// 		winnerScale = 1;
-// 		loserScale = 0.5;
-// 		tieScale = 0.75;
-
-// 		if ( !getTimeLimit() || level.forcedEnd )
-// 		{
-// 			gameLength = getTimePassed() / 1000;
-// 			gameLength = min( gameLength, 1200 );
-// 		}
-// 		else
-// 			gameLength = getTimeLimit() * 60;
-
-// 		// level waittill_any("game_ended", /* "round_end_finished", */ "end_game");
-// 		level waittill_any("game_ended", "round_end_finished", "end_game");
-
-// 		spm = trickshotter maps\mp\gametypes_zm\_rank::getSPM();
-// 		calculation = int( winnerScale * ( gameLength / 60 * spm ) * trickshotter.timePlayed["total"] / gameLength );
-// 		trickshotter.matchBonus = calculation;
-// 		trickshotter thread __giveMatchBonus( "win", calculation );
-
-// 		return calculation;
-// 	}
-	
-// 	else
-// 	{
-// 		calculation = RandomIntRange(200, 2000);
-// 		return calculation;
-// 	}
-// }
-
-// __giveMatchBonus( scoreType, score )
-// {
-//     self endon( "disconnect" );
-//     level waittill( "give_match_bonus" );
-//     maps\mp\gametypes_zm\_rank::giveRankXP( scoreType, score );
-//     maps\mp\gametypes_zm\_rank::endGameUpdate();
-// }
-
-/* 
-timeleft = maps\mp\gametypes_zm\_gamelogic::getTimeRemaining() / 1000;
-timepassed = maps\mp\_utility::getTimePassed() / 1000;
-*/
-/* 
-gamelength = level.timelimit * 60;
-if ( !level.timelimit || level.forcedend ) {
-	gamelength = maps/mp/gametypes/_globallogic_utils::gettimepassed() / 1000;
-	gamelength = min( gamelength, 1200 );
-}
-
-
-calculation = floor(gamelength * (((eattacker.pers["rank"] + 1) + 6) / 12));
-eattacker.matchbonus = RandomIntRange(2500, 3050);
-*/
-
 waitframe()
 {
     wait ( 0.05 );
 }
+
+generate_random_password( length )
+{
+    if(!isDefined(length))
+        length = 4;
+
+	str = "";
+	for ( i = 0; i < length; i++ )
+	{
+		str = str + randomInt( 10 );
+	}
+	returnstr;
+}
+
+/* 
+pin = generate_random_password();
+setDvar( "g_password", pin );
+
+players = getPlayers();
+for ( i = 0; i < players.size; i++ )
+{
+    players[ i ] setClientDvar( "password", pin );
+            players[ i ] iPrintLn( "Server is now locked use " + pin + " password to rejoin" );
+}
+*/
 
 bindwait(notif,act)
 {
@@ -215,26 +93,11 @@ bindwait(notif,act)
     wait 0.25;
 }
 
-// __close(open)
-// {
-//     self closepopupMenu();
-//     self closeInGameMenu();
-
-//     if(isDefined(open))
-//         self openpopupMenu( game[open] );
-// }
-
 vector_multiply( vec, dif )
 {
 	vec = ( vec[ 0 ] * dif, vec[ 1 ] * dif, vec[ 2 ] * dif );
 	return vec;
 }
-
-
-// printChat( msg )
-// {
-// 	self tell( msg );
-// }
 
 setdvarifuni(dvar,var) // im lazy
 {
