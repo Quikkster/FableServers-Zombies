@@ -450,7 +450,8 @@ init_dvars()
 {
     setdvar("sv_cheats", 1); 
 
-    setdvar("sv_patch_zm_weapons", 0); /* pre-patch zm weapons */
+    setdvar("sv_patch_zm_weapons", 0); // // Apply Post DLC1 changes to tar21_zm, type95_zm, xm8_zm, an94_zm, hamr_zm, rpd_zm, pdw57_zm, kard_zm ? (only recoil changes)
+    setdvar("sv_fix_zm_weapons", 1); // Fix the SMR's ADS spread, 870 MCS's penetration damage and allow sprinting with Galvaknuckles
     setDvar("sv_patch_dsr50", false ); // patch the DSR?
 
     setDvar("mod_version", "2.0");
