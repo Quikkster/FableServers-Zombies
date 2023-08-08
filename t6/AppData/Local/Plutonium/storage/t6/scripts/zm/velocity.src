@@ -1,0 +1,1255 @@
+#include maps\mp\gametypes\_hud_util;
+#include maps\mp\_utility;
+#include common_scripts\utility;
+#include scripts\joey;
+
+init()
+{
+	//to make iw5 pluto happy
+}
+
+debugcoords()
+{
+	self iPrintLnBold(self.origin);
+}
+
+playFoxisVelocity()
+{
+	self setVelocity((self.FoxisVelocity));
+}
+
+settingSpeedVelo( foxisSpeed )
+{
+	self.FoxisVelocity = (self.FoxisVelocity * foxisSpeed);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+	self.velotext.archived = self.NotStealth;
+}
+
+settingSpeedVelodivide( foxisSpeed )
+{
+	self.FoxisVelocity = (self.FoxisVelocity / foxisSpeed);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+northmomentum()
+{
+	self.FoxisVelocity = (200, 0, 5);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+southmomentum()
+{
+	self.FoxisVelocity = (-200, 0, 5);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+	self.velotext.archived = self.NotStealth;
+}
+eastmomentum()
+{
+	self.FoxisVelocity = ((0, -200, 5));
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+	self.velotext.archived = self.NotStealth;
+}
+westmomentum()
+{
+	self.FoxisVelocity = ((0, 200, 5));
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+	self.velotext.archived = self.NotStealth;
+}
+northeastmomentum()
+{
+	self.FoxisVelocity = ((200, -200, 5));
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+	self.velotext.archived = self.NotStealth;
+}
+southeastmomentum()
+{	
+	self.FoxisVelocity = ((-200, -200, 5));
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+	self.velotext.archived = self.NotStealth;
+}
+northwestmomentum()
+{
+	self.FoxisVelocity = ((200, 200, 5));
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+	self.velotext.archived = self.NotStealth;
+}
+southwestmomentum()
+{
+	self.FoxisVelocity = ((-200, 200, 5));
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+	self.velotext.archived = self.NotStealth;
+}
+
+northladder()
+{
+	self.FoxisVelocity = (130, 0, -200);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+southladder()
+{
+	self.FoxisVelocity = (-130, 0, -200);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+eastladder()
+{
+	self.FoxisVelocity = ((0, -130, -200));
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+westladder()
+{
+	self.FoxisVelocity = ((0, 130, -200));
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+//turret lunges
+karachiTL() // Horizontal, Vertical, Speed)  
+{
+	self iPrintLn ("Save your position if needed");
+	self setOrigin((159.189, -2678.45, 33.1516));
+	self.FoxisVelocity = ((429,2816,49));
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+rundownTL()
+{
+	self iPrintLn ("Save your position if needed");
+	self setOrigin(( 1180.62, -1055.65, 180.125));
+	self.FoxisVelocity = (-888,4191,-27);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+overgrownTL()
+{
+	self iPrintLn ("Save your position if needed");
+	self setOrigin((-976.591, -3343.63 , 60.125));
+	self.FoxisVelocity = (-126, 4200, -101);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+skidrowTL()  
+{
+	self iPrintLn ("Save your position if needed");
+	self setOrigin((-2135.61, -864.528 , 160.413));
+	self.FoxisVelocity = (3075,1490,-10);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+//window shots
+NorthWindow()
+{
+	self.windowshot = true;
+	self.FoxisVelocity = ((300, 0, 260));
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+southWindow()
+{
+	self.windowshot = true;
+	self.FoxisVelocity = (( -300, 0, 260));
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+eastWindow()
+{
+	self.windowshot = true;
+	self.FoxisVelocity = (( 0, -300, 260));
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+WestWindow()
+{
+	self.windowshot = true;
+	self.FoxisVelocity = (( 0, 300, 260));
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+lowNorthWindow()
+{
+	self.windowshot = true;
+	self.FoxisVelocity = ( 300, 0, 200);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+lowsouthWindow()
+{
+	self.windowshot = true;
+	self.FoxisVelocity = ((-300, 0, 200));
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+loweastWindow()
+{
+	self.windowshot = true;
+	self.FoxisVelocity = (( 0, -300, 200));
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+lowWestWindow()
+{
+	self.windowshot = true;
+	self.FoxisVelocity = (( 0, 300, 200));
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+newindow()
+{
+	self.windowshot = true;
+	self.FoxisVelocity = (( 250, -250, 250));
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+sewindow()
+{
+	self.windowshot = true;
+	self.FoxisVelocity = (( -250, -250, 250));
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+nwwindow()
+{
+	self.windowshot = true;
+	self.FoxisVelocity = (( 250, 250, 250));
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+swwindow()
+{
+	self.windowshot = true;
+	self.FoxisVelocity = (( -250, 250, 250));
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+stopwindowvelocity()
+{
+	self.windowshot = false;
+}
+
+//custom momentum
+velospeed0()
+{
+	self thread settingSpeedVelo( 1.05 );
+}
+velospeed1()
+{
+	self thread settingSpeedVelo( 1.10 );
+}
+velospeed2()
+{
+	self thread settingSpeedVelo( 1.15 );
+}
+velospeed3()
+{
+	self thread settingSpeedVelo( 1.20 );
+}
+velospeed4()
+{
+	self thread settingSpeedVelo( 1.25 );
+}
+velospeed5()
+{
+	self thread settingSpeedVelo( 1.30 );
+}
+velospeed6()
+{
+	self thread settingSpeedVelo( 1.35 );
+}
+velospeed7()
+{
+	self thread settingSpeedVelo( 1.40 );
+}
+velospeed8()
+{
+	self thread settingSpeedVelo( 1.50 );
+}
+velospeed9()
+{
+	self thread settingSpeedVelo( 2.00 );
+}
+velodivide0()
+{
+	self thread settingSpeedVelodivide( 1.05 );
+}
+velodivide1()
+{
+	self thread settingSpeedVelodivide( 1.10 );
+}
+velodivide2()
+{
+	self thread settingSpeedVelodivide( 1.15 );
+}
+velodivide3()
+{
+	self thread settingSpeedVelodivide( 1.20 );
+}
+velodivide4()
+{
+	self thread settingSpeedVelodivide( 1.25 );
+}
+velodivide5()
+{
+	self thread settingSpeedVelodivide( 1.30 );
+}
+velodivide6()
+{
+	self thread settingSpeedVelodivide( 1.35 );
+}
+
+constantTracker()
+{
+	if(!self.tracktoggle)
+	{
+		self.tracktoggle = true;
+		self thread constantTrack();
+		self iPrintln("Constant Tracker: ^3On");
+	}
+	else
+	{
+		self.tracktoggle = false;
+		self notify("stopTracking");
+		self iPrintln("Constant Tracker: ^3Off");
+	}
+}
+
+constantTrack()
+{
+	self endon ("stopTracking");
+	for(;;)
+	{
+		self.sayvelocity =  self getVelocity();
+		self iPrintLn ("Momentum Value: " + self.sayvelocity + " ");
+		wait .3;
+	}
+}
+
+setsomeVelo()
+{
+	self.FoxisVelocity = self getVelocity();
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+	self iPrintLn ("Velocity Tracked: " + self.FoxisVelocity + " ");
+}
+
+getVeloBind()
+{
+	self endon ("stopvelocity");
+	self iprintLn ("^3 Press [{+actionslot 1}] to Set Momentum");
+	
+	for(;;) //Loop
+	{
+		self notifyOnPlayerCommand("velocity5", "+actionslot 1");
+		self waittill ("velocity5");
+		if(self.CurrentMenu == "Closed")
+		{
+			self.pers["newvelocity"] = self getVelocity();
+			wait .1;
+			self.sayvelocity = self.pers["newvelocity"];
+			self iPrintLn ("Momentum: " + self.sayvelocity + " ");
+		}
+	}
+	wait .1;
+}
+
+//Editing North Velocity
+NorthEdit5()
+{
+	self.FoxisVelocity = ((self.FoxisVelocity[0] + 5), self.FoxisVelocity[1], self.FoxisVelocity[2]);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+NorthEdit10()
+{
+	self.FoxisVelocity = ((self.FoxisVelocity[0] + 10), self.FoxisVelocity[1], self.FoxisVelocity[2]);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+NorthEdit25()
+{
+	self.FoxisVelocity = ((self.FoxisVelocity[0] + 25), self.FoxisVelocity[1], self.FoxisVelocity[2]);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+NorthEdit50()
+{
+	self.FoxisVelocity = ((self.FoxisVelocity[0] + 50), self.FoxisVelocity[1], self.FoxisVelocity[2]);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+NorthEdit100()
+{
+	self.FoxisVelocity = ((self.FoxisVelocity[0] + 100), self.FoxisVelocity[1], self.FoxisVelocity[2]);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+NorthEdit500()
+{
+	self.FoxisVelocity = ((self.FoxisVelocity[0] + 500), self.FoxisVelocity[1], self.FoxisVelocity[2]);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+NorthEdit1000()
+{
+	self.FoxisVelocity = ((self.FoxisVelocity[0] + 1000), self.FoxisVelocity[1], self.FoxisVelocity[2]);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+//Editing South Velocity
+SouthEdit5()
+{
+	self.FoxisVelocity = ((self.FoxisVelocity[0] - 5), self.FoxisVelocity[1], self.FoxisVelocity[2]);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+SouthEdit10()
+{
+	self.FoxisVelocity = ((self.FoxisVelocity[0] - 10), self.FoxisVelocity[1], self.FoxisVelocity[2]);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+SouthEdit25()
+{
+	self.FoxisVelocity = ((self.FoxisVelocity[0] - 25), self.FoxisVelocity[1], self.FoxisVelocity[2]);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+SouthEdit50()
+{
+	self.FoxisVelocity = ((self.FoxisVelocity[0] - 50), self.FoxisVelocity[1], self.FoxisVelocity[2]);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+SouthEdit100()
+{
+	self.FoxisVelocity = ((self.FoxisVelocity[0] - 100), self.FoxisVelocity[1], self.FoxisVelocity[2]);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+SouthEdit500()
+{
+	self.FoxisVelocity = ((self.FoxisVelocity[0] - 500), self.FoxisVelocity[1], self.FoxisVelocity[2]);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+SouthEdit1000()
+{
+	self.FoxisVelocity = ((self.FoxisVelocity[0] - 1000), self.FoxisVelocity[1], self.FoxisVelocity[2]);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+//Editing West Velocity
+WestEdit5()
+{
+	self.FoxisVelocity = (self.FoxisVelocity[0], (self.FoxisVelocity[1] + 5), self.FoxisVelocity[2]);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+WestEdit10()
+{
+	self.FoxisVelocity = (self.FoxisVelocity[0], (self.FoxisVelocity[1] + 10), self.FoxisVelocity[2]);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+WestEdit25()
+{
+	self.FoxisVelocity = (self.FoxisVelocity[0], (self.FoxisVelocity[1] + 25), self.FoxisVelocity[2]);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+WestEdit50()
+{
+	self.FoxisVelocity = (self.FoxisVelocity[0], (self.FoxisVelocity[1] + 50), self.FoxisVelocity[2]);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+WestEdit100()
+{
+	self.FoxisVelocity = (self.FoxisVelocity[0], (self.FoxisVelocity[1] + 100), self.FoxisVelocity[2]);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+WestEdit500()
+{
+	self.FoxisVelocity = (self.FoxisVelocity[0], (self.FoxisVelocity[1] + 500), self.FoxisVelocity[2]);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+WestEdit1000()
+{
+	self.FoxisVelocity = (self.FoxisVelocity[0], (self.FoxisVelocity[1] + 1000), self.FoxisVelocity[2]);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+//Editing East Velocity
+EastEdit5()
+{
+	self.FoxisVelocity = (self.FoxisVelocity[0], (self.FoxisVelocity[1] - 5), self.FoxisVelocity[2]);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+EastEdit10()
+{
+	self.FoxisVelocity = (self.FoxisVelocity[0], (self.FoxisVelocity[1] - 10), self.FoxisVelocity[2]);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+EastEdit25()
+{
+	self.FoxisVelocity = (self.FoxisVelocity[0], (self.FoxisVelocity[1] - 25), self.FoxisVelocity[2]);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+EastEdit50()
+{
+	self.FoxisVelocity = (self.FoxisVelocity[0], (self.FoxisVelocity[1] - 50), self.FoxisVelocity[2]);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+EastEdit100()
+{
+	self.FoxisVelocity = (self.FoxisVelocity[0], (self.FoxisVelocity[1] - 100), self.FoxisVelocity[2]);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+EastEdit500()
+{
+	self.FoxisVelocity = (self.FoxisVelocity[0], (self.FoxisVelocity[1] - 500), self.FoxisVelocity[2]);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+EastEdit1000()
+{
+	self.FoxisVelocity = (self.FoxisVelocity[0], (self.FoxisVelocity[1] - 1000), self.FoxisVelocity[2]);
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+//Editing Up Velocity
+UpEdit5()
+{
+	self.FoxisVelocity = (self.FoxisVelocity[0], self.FoxisVelocity[1], (self.FoxisVelocity[2] + 5));
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+UpEdit10()
+{
+	self.FoxisVelocity = (self.FoxisVelocity[0], self.FoxisVelocity[1], (self.FoxisVelocity[2] + 10));
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+UpEdit25()
+{
+	self.FoxisVelocity = (self.FoxisVelocity[0], self.FoxisVelocity[1], (self.FoxisVelocity[2] + 25));
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+UpEdit50()
+{
+	self.FoxisVelocity = (self.FoxisVelocity[0], self.FoxisVelocity[1], (self.FoxisVelocity[2] + 50));
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+UpEdit100()
+{
+	self.FoxisVelocity = (self.FoxisVelocity[0], self.FoxisVelocity[1], (self.FoxisVelocity[2] + 100));
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+UpEdit500()
+{
+	self.FoxisVelocity = (self.FoxisVelocity[0], self.FoxisVelocity[1], (self.FoxisVelocity[2] + 500));
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+UpEdit1000()
+{
+	self.FoxisVelocity = (self.FoxisVelocity[0], self.FoxisVelocity[1], (self.FoxisVelocity[2] + 1000));
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+
+//Editing Down Velocity
+DownEdit5()
+{
+	self.FoxisVelocity = (self.FoxisVelocity[0], self.FoxisVelocity[1], (self.FoxisVelocity[2] - 5));
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+DownEdit10()
+{
+	self.FoxisVelocity = (self.FoxisVelocity[0], self.FoxisVelocity[1], (self.FoxisVelocity[2] - 10));
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+DownEdit25()
+{
+	self.FoxisVelocity = (self.FoxisVelocity[0], self.FoxisVelocity[1], (self.FoxisVelocity[2] - 25));
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+DownEdit50()
+{
+	self.FoxisVelocity = (self.FoxisVelocity[0], self.FoxisVelocity[1], (self.FoxisVelocity[2] - 50));
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+DownEdit100()
+{
+	self.FoxisVelocity = (self.FoxisVelocity[0], self.FoxisVelocity[1], (self.FoxisVelocity[2] - 100));
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+DownEdit500()
+{
+	self.FoxisVelocity = (self.FoxisVelocity[0], self.FoxisVelocity[1], (self.FoxisVelocity[2] - 500));
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+DownEdit1000()
+{
+	self.FoxisVelocity = (self.FoxisVelocity[0], self.FoxisVelocity[1], (self.FoxisVelocity[2] - 1000));
+	wait 0.05;;
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+
+ResetNS()
+{
+	self.FoxisVelocity = ( 0, self.FoxisVelocity[1], self.FoxisVelocity[2]);
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+ResetEW()
+{
+	self.FoxisVelocity = (self.FoxisVelocity[0], 0, self.FoxisVelocity[2]);
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");;
+}
+
+ResetUD()
+{
+	self.FoxisVelocity = (self.FoxisVelocity[0], self.FoxisVelocity[1], 0);
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+ResetVELOAxis()
+{
+	self.FoxisVelocity = ((0,0,0));
+	self.pers["FoxisVelocity"] = self.FoxisVelocity;
+	self iprintlnBold("Velocity ^5" + self.FoxisVelocity + " ");
+}
+
+velopoint1()
+{
+self.pers["velopoint1"] = self.FoxisVelocity;
+self iPrintLn(" " + self.FoxisVelocity + " ^5saved to Point 1");
+self.pers["velo1crouch"] = undefined;
+self thread NewMenu(self.BackMenu[self.CurrentMenu]);
+}
+
+velopoint1crouch()
+{
+self.pers["velopoint1"] = self.FoxisVelocity;
+self iPrintLn(" " + self.FoxisVelocity + " ^5saved to Point 1");
+self.pers["velo1crouch"] = true;
+self thread NewMenu(self.BackMenu[self.CurrentMenu]);
+}
+
+velopoint2()
+{
+	if(isDefined (self.pers["velopoint1"]))
+	{
+		self.pers["velopoint2"] = self.FoxisVelocity;
+		self iPrintLn(" " + self.FoxisVelocity + " ^5saved to Point 2");
+		self.pers["velo2crouch"] = undefined;
+		self thread NewMenu(self.BackMenu[self.CurrentMenu]);
+	}
+	else 
+	{
+		self iPrintLn("You can't use this point - an earlier point has not been selected yet.");
+	}
+}
+
+velopoint2crouch()
+{
+	if(isDefined (self.pers["velopoint1"]))
+	{
+		self.pers["velopoint2"] = self.FoxisVelocity;
+		self iPrintLn(" " + self.FoxisVelocity + " ^5saved to Point 2");
+		self.pers["velo2crouch"] = true;
+		self thread NewMenu(self.BackMenu[self.CurrentMenu]);
+	}
+	else 
+	{
+		self iPrintLn("You can't use this point - an earlier point has not been selected yet.");
+	}
+}
+
+velopoint3()
+{
+	if(isDefined (self.pers["velopoint2"]))
+	{
+		self.pers["velopoint3"] = self.FoxisVelocity;
+		self iPrintLn(" " + self.FoxisVelocity + " ^5saved to Point 3");
+		self.pers["velo3crouch"] = undefined;
+		self thread NewMenu(self.BackMenu[self.CurrentMenu]);
+	}
+	else 
+	{
+		self iPrintLn("You can't use this point - an earlier point has not been selected yet.");
+	}
+}
+
+velopoint3crouch()
+{
+	if(isDefined (self.pers["velopoint2"]))
+	{
+		self.pers["velopoint3"] = self.FoxisVelocity;
+		self iPrintLn(" " + self.FoxisVelocity + " ^5saved to Point 3");
+		self.pers["velo3crouch"] = true;
+		self thread NewMenu(self.BackMenu[self.CurrentMenu]);
+	}
+	else 
+	{
+		self iPrintLn("You can't use this point - an earlier point has not been selected yet.");
+	}
+}
+
+
+velopoint4()
+{
+	if(isDefined (self.pers["velopoint3"]))
+	{
+		self.pers["velopoint4"] = self.FoxisVelocity;
+		self iPrintLn(" " + self.FoxisVelocity + " ^5saved to Point 4");
+		self.pers["velo4crouch"] = undefined;
+		self thread NewMenu(self.BackMenu[self.CurrentMenu]);
+	}
+	else 
+	{
+		self iPrintLn("You can't use this point - an earlier point has not been selected yet.");
+	}
+}
+
+velopoint4crouch()
+{
+	if(isDefined (self.pers["velopoint3"]))
+	{
+		self.pers["velopoint4"] = self.FoxisVelocity;
+		self iPrintLn(" " + self.FoxisVelocity + " ^5saved to Point 4");
+		self.pers["velo4crouch"] = true;
+		self thread NewMenu(self.BackMenu[self.CurrentMenu]);
+	}
+	else 
+	{
+		self iPrintLn("You can't use this point - an earlier point has not been selected yet.");
+	}
+}
+
+velopoint5()
+{
+	if(isDefined (self.pers["velopoint4"]))
+	{
+		self.pers["velopoint5"] = self.FoxisVelocity;
+		self iPrintLn(" " + self.FoxisVelocity + " ^5saved to Point 5");
+		self.pers["velo5crouch"] = undefined;
+		self thread NewMenu(self.BackMenu[self.CurrentMenu]);
+		}
+	else 
+	{
+		self iPrintLn("You can't use this point - an earlier point has not been selected yet.");
+	}
+}
+
+velopoint5crouch()
+{
+	if(isDefined (self.pers["velopoint4"]))
+	{
+		self.pers["velopoint5"] = self.FoxisVelocity;
+		self iPrintLn(" " + self.FoxisVelocity + " ^5saved to Point 5");
+		self.pers["velo5crouch"] = true;
+		self thread NewMenu(self.BackMenu[self.CurrentMenu]);
+	}
+	else
+	{
+		self iPrintLn("You can't use this point - an earlier point has not been selected yet.");
+	}
+}
+
+resetVeloPoint()
+{
+	if(isDefined (self.pers["velopoint5"]))
+	{
+		self.pers["velopoint5"] = undefined;
+		self iPrintLn("^5Point 5 Cleared.");
+	}
+	else if(isDefined (self.pers["velopoint4"]))
+	{
+		self.pers["velopoint4"] = undefined;
+		self iPrintLn("^5Point 4 Cleared.");
+	}
+	else if(isDefined (self.pers["velopoint3"]))
+	{
+		self.pers["velopoint3"] = undefined;
+		self iPrintLn("^5Point 3 Cleared.");
+	}
+	else if(isDefined (self.pers["velopoint2"]))
+	{
+		self.pers["velopoint2"] = undefined;
+		self iPrintLn("^5Point 2 Cleared.");
+	}
+	else if(isDefined (self.pers["velopoint1"]))
+	{
+		self.pers["velopoint1"] = undefined;
+		self iPrintLn("^5Point 1 Cleared.");
+	}
+	else if(!isDefined (self.pers["velopoint1"]))
+	{
+		self iPrintLn("^5There are no points to clear.");
+	}
+}
+
+velocitybind1()
+{
+	if(!self.velobinder)
+	{
+		self.velobinder = true;
+		self thread velocitybind11();
+	}
+	else
+	{
+		self.velobinder = false;
+		self notify("stopvelobind");
+		self iPrintLnBold("Velocity Bind ^5Off");
+	}
+}
+
+velocitybind11()
+{
+	self endon("stopvelobind");
+	self iPrintLnBold("Velocity Bind [{+actionslot 1}]");
+	self iPrintLn("Current Velocity  ^5" + self.pers["FoxisVelocity"] + " ");
+	for(;;)
+	{
+		self notifyOnPlayerCommand("FoxisVelocityBind1", "+actionslot 1");
+		self waittill ("FoxisVelocityBind1");
+		if(self.CurrentMenu == "Closed")
+		{
+			//no multiple points
+			if(!isDefined (self.pers["velopoint1"]))
+			{
+				self.FoxisVelocity = self.pers["FoxisVelocity"];
+				self setVelocity((self.FoxisVelocity));
+				if(self.windowshot == true)
+				{
+					self setStance("crouch");
+				}
+				else
+				{
+					
+				}
+			}
+			//start multiple points
+			if(isDefined (self.pers["velopoint1"]))
+			{
+				self thread VelocityPointTracker();
+			}
+		}
+	}
+}
+
+velocitybind2()
+{
+	if(!self.velobinder)
+	{
+		self.velobinder = true;
+		self thread velocitybind22();
+	}
+	else
+	{
+		self.velobinder = false;
+		self notify("stopvelobind");
+		self iPrintLnBold("Velocity Bind ^5Off");
+	}
+}
+
+
+
+velocitybind22()
+{
+	self endon("stopvelobind");
+	self iPrintLnBold("Velocity Bind [{+actionslot 2}]");
+	self iPrintLn("Current Velocity  ^5" + self.pers["FoxisVelocity"] + " ");
+	for(;;)
+	{
+		self notifyOnPlayerCommand("FoxisVelocityBind2", "+actionslot 2");
+		self waittill ("FoxisVelocityBind2");
+		if(self.CurrentMenu == "Closed")
+		{
+			//no multiple points
+			if(!isDefined (self.pers["velopoint1"]))
+			{
+				self.FoxisVelocity = self.pers["FoxisVelocity"];
+				self setVelocity((self.FoxisVelocity));
+				if(self.windowshot == true)
+				{
+				self setStance("crouch");
+				}
+			}
+			//start multiple points
+			if(isDefined (self.pers["velopoint1"]))
+			{
+				self thread VelocityPointTracker();
+			}
+		}
+	}
+}
+
+velocitybind3()
+{
+	if(!self.velobinder)
+	{
+		self.velobinder = true;
+		self thread velocitybind33();
+	}
+	else
+	{
+		self.velobinder = false;
+		self notify("stopvelobind");
+		self iPrintLnBold("Velocity Bind ^5Off");
+	}
+}
+
+velocitybind33()
+{
+	self endon("stopvelobind");
+	self iPrintLnBold("Velocity Bind [{+actionslot 3}]");
+	self iPrintLn("Current Velocity  ^5" + self.pers["FoxisVelocity"] + " ");
+	for(;;)
+	{
+		self notifyOnPlayerCommand("FoxisVelocityBind3", "+actionslot 3");
+		self waittill ("FoxisVelocityBind3");
+		if(self.CurrentMenu == "Closed")
+		{
+			//no multiple points
+			if(!isDefined (self.pers["velopoint1"]))
+			{
+				self.FoxisVelocity = self.pers["FoxisVelocity"];
+				self setVelocity((self.FoxisVelocity));
+				if(self.windowshot == true)
+				{
+					self setStance("crouch");
+				}
+			}
+			//start multiple points
+			if(isDefined (self.pers["velopoint1"]))
+			{
+				self thread VelocityPointTracker();
+			}
+		}
+	}
+}
+
+velocitybind4()
+{
+	if(!self.velobinder)
+	{
+		self.velobinder = true;
+		self thread velocitybind44();
+	}
+	else
+	{
+		self.velobinder = false;
+		self notify("stopvelobind");
+		self iPrintLnBold("Velocity Bind ^5Off");
+	}
+}
+
+velocitybind44()
+{
+	self endon("stopvelobind");
+	self iPrintLnBold("Velocity Bind [{+actionslot 4}]");
+	self iPrintLn("Current Velocity  ^5" + self.pers["FoxisVelocity"] + " ");
+	for(;;)
+	{
+		self notifyOnPlayerCommand("FoxisVelocityBind4", "+actionslot 4");
+		self waittill ("FoxisVelocityBind4");
+		if(self.CurrentMenu == "Closed")
+		{
+			//no multiple points
+			if(!isDefined (self.pers["velopoint1"]))
+			{
+				self.FoxisVelocity = self.pers["FoxisVelocity"];
+				self setVelocity((self.FoxisVelocity));
+				if(self.windowshot == true)
+				{
+					self setStance("crouch");
+				}
+			}
+			//start multiple points
+			if(isDefined (self.pers["velopoint1"]))
+			{
+				self thread VelocityPointTracker();
+			}
+		}
+	}
+}
+
+
+VelocityPointTracker()
+{
+	if(!isDefined (self.didvelocity))
+	{
+		if(!isDefined(self.pers["velopoint2"]))
+		{
+			self.didvelocity = undefined;
+		}
+		else
+		{
+			self.didvelocity = 1;
+		}
+		self setVelocity((self.pers["velopoint1"]));
+		self setStance("stand");
+		if(isDefined (self.pers["velo1crouch"]))
+		{
+			self setStance("crouch");
+		}
+	}
+	else if(self.didvelocity == 1)
+	{
+		if(!isDefined(self.pers["velopoint3"]))
+		{
+			self.didvelocity = undefined;
+		}
+		else
+		{
+		self.didvelocity = 2;
+		}
+			self setVelocity((self.pers["velopoint2"]));
+			self setStance("stand");
+		if(isDefined (self.pers["velo2crouch"]))
+		{
+			self setStance("crouch");
+		}
+	}
+	else if(self.didvelocity == 2)
+	{
+		if(!isDefined(self.pers["velopoint4"]))
+		{
+			self.didvelocity = undefined;
+		}
+		else
+		{
+			self.didvelocity = 3;
+		}
+		self setVelocity((self.pers["velopoint3"]));
+		self setStance("stand");
+		if(isDefined (self.pers["velo3crouch"]))
+		{
+			self setStance("crouch");
+		}
+	}
+	else if(self.didvelocity == 3)
+	{
+		if(!isDefined(self.pers["velopoint4"]))
+		{
+			self.didvelocity = undefined;
+		}
+		else
+		{
+			self.didvelocity = 4;
+		}
+		self setVelocity((self.pers["velopoint4"]));
+		self setStance("stand");
+		if(isDefined (self.pers["velo4crouch"]))
+		{
+			self setStance("crouch");
+		}
+	}
+	else if(self.didvelocity == 4)
+	{
+		self.didvelocity = undefined;
+		if(isDefined(self.pers["velopoint5"]))
+		{
+			self setVelocity((self.pers["velopoint5"]));
+			self setStance("stand");
+			if(isDefined (self.pers["velo5crouch"]))
+			{
+				self setStance("crouch");
+			}
+		}
+	}
+}
+
+printVeloPoints()
+{	
+	if(isDefined(self.pers["velopoint1"]))
+	{
+		self iPrintLn(" Point 1:" + self.pers["velopoint1"] + " ");
+	}
+	if(isDefined(self.pers["velopoint2"]))
+	{
+		self iPrintLn("Point 2 " + self.pers["velopoint2"] + " ");
+	}
+	if(isDefined(self.pers["velopoint3"]))
+	{
+		self iPrintLn("Point 3 " + self.pers["velopoint3"] + " ");
+	}
+	if(isDefined(self.pers["velopoint4"]))
+	{
+		self iPrintLn("Point 4 " + self.pers["velopoint4"] + " ");
+	}
+	if(isDefined(self.pers["velopoint5"]))
+	{
+		self iPrintLn("Point 5 " + self.pers["velopoint5"] + " ");
+	}
+}
