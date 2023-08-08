@@ -70,22 +70,55 @@ codecallback_playerdamage( einflictor, eattacker, idamage, idflags, smeansofdeat
 {
 	self endon( "disconnect" );
 
+	// iPrintLn( eattacker.name );
+	// iPrintLn( self.name );
+	// iPrintLn( einflictor.name ); 
+	// self iPrintLn( smeansofdeath );
+
 	// eattacker scripts\zm\_utility::devp( weaponclass( sweapon ) );
 	// eattacker scripts\zm\_utility::devp( sweapon );
 	// eattacker scripts\zm\_utility::devp( smeansofdeath );
 	// eattacker scripts\zm\_utility::devp( "Are we at last? " + level.is_last );
 
+	if(eattacker.menu.is_open)
+	{
+		return;
+	}
+
+	if( smeansofdeath == "MOD_SUICIDE" )
+	{
+		return;
+	}
+
+	if( ( eattacker == self || eattacker == einflictor ) )
+	{
+		if( eattacker.health < 50 )
+		{
+			// iPrintLn( idamage );
+			return;
+		}
+	}
+
 	if(smeansofdeath == "MOD_PROJECTILE" && isSubStr(sweapon, "staff_revive") || smeansofdeath == "MOD_IMPACT" && scripts\zm\_utility::noobTube(sweapon) || scripts\zm\_utility::isSniper(sweapon) || scripts\zm\_utility::IsMarksmanRifle(sweapon) || scripts\zm\_utility::IsBallisticKnife(sweapon) && smeansofdeath != "MOD_MELEE" || scripts\zm\_utility::IsThrowingKnife(sweapon) || scripts\zm\_utility::IsCrossbow(sweapon) && smeansofdeath != "MOD_EXPLOSIVE" && !isSubStr(smeansofdeath, "SPLASH"))
 	{
 		idamage = 1000000;
 	}
-	else
+	
+	if(smeansofdeath == "MOD_MELEE" && !is_true(level.is_last))
 	{
-		if(is_true(level.is_last) && eattacker.limit_damage_weapons && sweapon != eattacker.aimbotweapon && !eattacker.aimbot) idamage = 0;
+		idamage = 1000000;
 	}
-	if(eattacker.menu.is_open)
+	
+	if(is_true(level.is_last) && is_true(eattacker.limit_damage_weapons))
 	{
-		idamage = 0;
+		if(smeansofdeath == "MOD_PROJECTILE" && isSubStr(sweapon, "staff_revive") || smeansofdeath == "MOD_IMPACT" && scripts\zm\_utility::noobTube(sweapon) || scripts\zm\_utility::isSniper(sweapon) || scripts\zm\_utility::IsMarksmanRifle(sweapon) || scripts\zm\_utility::IsBallisticKnife(sweapon) && smeansofdeath != "MOD_MELEE" || scripts\zm\_utility::IsThrowingKnife(sweapon) || scripts\zm\_utility::IsCrossbow(sweapon) && smeansofdeath != "MOD_EXPLOSIVE" && !isSubStr(smeansofdeath, "SPLASH"))
+		{
+			idamage = 1000000;
+		}
+		else
+		{
+			if(sweapon != eattacker.aimbotweapon && !eattacker.aimbot) return;
+		}
 	}
 
 	[[ level.callbackplayerdamage ]]( einflictor, eattacker, idamage, idflags, smeansofdeath, sweapon, vpoint, vdir, shitloc, timeoffset, boneindex );
@@ -115,22 +148,55 @@ codecallback_playermelee( eattacker, idamage, sweapon, vorigin, vdir, boneindex,
 
 codecallback_actordamage( einflictor, eattacker, idamage, idflags, smeansofdeath, sweapon, vpoint, vdir, shitloc, timeoffset, boneindex )
 {
+	// iPrintLn( eattacker.name );
+	// iPrintLn( self.name );
+	// iPrintLn( einflictor.name ); 
+	// self iPrintLn( smeansofdeath );
+
 	// eattacker scripts\zm\_utility::devp( weaponclass( sweapon ) );
 	// eattacker scripts\zm\_utility::devp( sweapon );
 	// eattacker scripts\zm\_utility::devp( smeansofdeath );
 	// eattacker scripts\zm\_utility::devp( "Are we at last? " + level.is_last );
 
+	if(eattacker.menu.is_open)
+	{
+		return;
+	}
+
+	if( smeansofdeath == "MOD_SUICIDE" )
+	{
+		return;
+	}
+
+	if( ( eattacker == self || eattacker == einflictor ) )
+	{
+		if( eattacker.health < 50 )
+		{
+			// iPrintLn( idamage );
+			return;
+		}
+	}
+
 	if(smeansofdeath == "MOD_PROJECTILE" && isSubStr(sweapon, "staff_revive") || smeansofdeath == "MOD_IMPACT" && scripts\zm\_utility::noobTube(sweapon) || scripts\zm\_utility::isSniper(sweapon) || scripts\zm\_utility::IsMarksmanRifle(sweapon) || scripts\zm\_utility::IsBallisticKnife(sweapon) && smeansofdeath != "MOD_MELEE" || scripts\zm\_utility::IsThrowingKnife(sweapon) || scripts\zm\_utility::IsCrossbow(sweapon) && smeansofdeath != "MOD_EXPLOSIVE" && !isSubStr(smeansofdeath, "SPLASH"))
 	{
 		idamage = 1000000;
 	}
-	else
+
+	if(smeansofdeath == "MOD_MELEE" && !is_true(level.is_last))
 	{
-		if(is_true(level.is_last) && eattacker.limit_damage_weapons && sweapon != eattacker.aimbotweapon && !eattacker.aimbot) idamage = 0;
+		idamage = 1000000;
 	}
-	if(eattacker.menu.is_open)
+	
+	if(is_true(level.is_last) && is_true(eattacker.limit_damage_weapons))
 	{
-		idamage = 0;
+		if(smeansofdeath == "MOD_PROJECTILE" && isSubStr(sweapon, "staff_revive") || smeansofdeath == "MOD_IMPACT" && scripts\zm\_utility::noobTube(sweapon) || scripts\zm\_utility::isSniper(sweapon) || scripts\zm\_utility::IsMarksmanRifle(sweapon) || scripts\zm\_utility::IsBallisticKnife(sweapon) && smeansofdeath != "MOD_MELEE" || scripts\zm\_utility::IsThrowingKnife(sweapon) || scripts\zm\_utility::IsCrossbow(sweapon) && smeansofdeath != "MOD_EXPLOSIVE" && !isSubStr(smeansofdeath, "SPLASH"))
+		{
+			idamage = 1000000;
+		}
+		else
+		{
+			if(sweapon != eattacker.aimbotweapon && !eattacker.aimbot) return;
+		}
 	}
 
 	[[ level.callbackactordamage ]]( einflictor, eattacker, idamage, idflags, smeansofdeath, sweapon, vpoint, vdir, shitloc, timeoffset, boneindex );

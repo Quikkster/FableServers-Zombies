@@ -1,0 +1,47 @@
+/* maps/mp/zm_highrise_elevators::is_self_on_elevator() */
+is_self_on_elevator()
+{
+	elevator_volumes = [];
+	elevator_volumes[ elevator_volumes.size ] = getent( "elevator_1b", "targetname" );
+	elevator_volumes[ elevator_volumes.size ] = getent( "elevator_1c", "targetname" );
+	elevator_volumes[ elevator_volumes.size ] = getent( "elevator_1d", "targetname" );
+	elevator_volumes[ elevator_volumes.size ] = getent( "elevator_3a", "targetname" );
+	elevator_volumes[ elevator_volumes.size ] = getent( "elevator_3b", "targetname" );
+	elevator_volumes[ elevator_volumes.size ] = getent( "elevator_3c", "targetname" );
+	elevator_volumes[ elevator_volumes.size ] = getent( "elevator_3d", "targetname" );
+	_a190 = elevator_volumes;
+	_k190 = getFirstArrayKey( _a190 );
+	while ( isDefined( _k190 ) )
+	{
+		zone = _a190[ _k190 ];
+		if ( self istouching( zone ) )
+		{
+			return 1;
+		}
+		_k190 = getNextArrayKey( _a190, _k190 );
+	}
+	_a198 = level.elevators;
+	_k198 = getFirstArrayKey( _a198 );
+	while ( isDefined( _k198 ) )
+	{
+		elevator = _a198[ _k198 ];
+		if ( isDefined( elevator.body.trig ) )
+		{
+			if ( self istouching( elevator.body.trig ) )
+			{
+				return 1;
+			}
+		}
+		_k198 = getNextArrayKey( _a198, _k198 );
+	}
+	escape_pod = getent( "elevator_bldg1a_body", "targetname" );
+	if ( self istouching( escape_pod ) )
+	{
+		return 1;
+	}
+	if ( distance( escape_pod.origin, self.origin ) < 128 )
+	{
+		return 1;
+	}
+	return 0;
+}

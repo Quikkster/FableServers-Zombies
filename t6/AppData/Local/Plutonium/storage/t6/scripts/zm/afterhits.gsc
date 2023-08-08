@@ -64,10 +64,12 @@ init_afterhit()
         arrayinsert(perks, "zombie_perk_bottle_additionalprimaryweapon", perks.size);
     if (is_true(level.zombiemode_using_chugabud_perk))
         arrayinsert(perks, "zombie_perk_bottle_revive", perks.size);
-    if (is_true(level.zombiemode_using_electric_cherry_perk))
+    if (level.script == "zm_prison" || level.script == "zm_tomb")
         arrayinsert(perks, "specialty_grenadepulldeath", perks.size);
-    if (is_true(level.zombiemode_using_vulture_perk))
+    if (level.script == "zm_buried")
         arrayinsert(perks, "specialty_nomotionsensor", perks.size);
+    if (level.script == "zm_tomb")
+        arrayinsert(perks, "specialty_flakjacket", perks.size);
 
     self.afterhit[0]["weapon"] = "fivesevendw_zm";
     self.afterhit[1]["weapon"] = "zombie_knuckle_crack";
@@ -81,6 +83,12 @@ init_afterhit()
     self.afterhit[9]["weapon"] = "slowgun_zm";
     self.afterhit[10]["weapon"] = "zombie_bowie_flourish";
     self.afterhit[11]["weapon"] = "zombie_tazer_flourish";
+    self.afterhit[12]["weapon"] = "death_throe_zm";
+    self.afterhit[13]["weapon"] = "ray_gun_zm";
+    self.afterhit[14]["weapon"] = "raygun_mark2_zm";
+    self.afterhit[15]["weapon"] = randomintrange(0, level.canswapWeapons.size);
+    self.afterhit[16]["weapon"] = "screecher_arms_zm";
+    self.afterhit[17]["weapon"] = "syrette_afterlife_zm";
 }
 
 can_toggle()
@@ -208,5 +216,43 @@ LayDown()
     self SetStance( "prone" );
     wait 0.5;
     self SetStance( "prone" );
+    wait 0.5;
+}
+
+
+allowMoveAfterhit()
+{
+    if(self.allowMoveAfterhit == 0)
+    {
+        self iPrintln("Allow Move After Game Ends: ^2On");
+        self endon("disconnect");
+        level waittill_any("game_ended", "end_game");
+        self thread allowMoveAfterGame();
+        self.allowMoveAfterhit = 1;
+    }
+    else
+    {
+        self iPrintln("Allow Move After Game Ends: ^1Off");
+        self notify("notmove");
+        self.allowMoveAfterhit = 0;
+    }
+}
+
+allowMoveAfterGame()
+{
+    self endon("notmove");
+    self endon("disconnect");
+    
+    self freezeControls( false );
+    wait 0.5;
+    self freezeControls( false );
+    wait 0.5;
+    self freezeControls( false );
+    wait 0.5;
+    self freezeControls( false );
+    wait 0.5;
+    self freezeControls( false );
+    wait 0.5;
+    self freezeControls( false );
     wait 0.5;
 }

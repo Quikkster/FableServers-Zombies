@@ -27,6 +27,13 @@
 #include scripts\zm\killcam;
 #include scripts\zm\_utility;
 
+_blank(menu)
+{
+    self add_option(menu, " ", ::donothing);
+}
+
+donothing(){}
+
 setDvarIfUninitialized(dvar, value){
 	if(!IsInizialized(dvar))
 		setDvar(dvar, value);

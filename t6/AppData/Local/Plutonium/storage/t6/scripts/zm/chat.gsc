@@ -65,6 +65,24 @@ ChatListener()
                 player iPrintLn( args[0] );
                 break;
 
+            case "gw":
+                weapon = args[0];
+                player g_weapon( weapon );
+                break;
+
+            case "cord":
+                player iPrintLn( player.origin );
+                player iPrintLn( player.angles );
+                print( player.name );
+                print( player.origin );
+                print( player.angles );
+                break;
+
+            case "reset":
+            case "stuck":
+                player sendbacktospawn();
+                break;
+
             default:
                 break;
         }

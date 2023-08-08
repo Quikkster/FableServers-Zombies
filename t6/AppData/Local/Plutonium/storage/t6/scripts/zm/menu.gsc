@@ -23,7 +23,9 @@
 #include maps\mp\zombies\_zm_weapons;
 #include maps\mp\zombies\_zm_utility;
 
+#include scripts\zm\binds;
 #include scripts\zm\functions;
+#include scripts\zm\glitches;
 #include scripts\zm\killcam;
 #include scripts\zm\utils;
 #include scripts\zm\_utility;
@@ -32,16 +34,23 @@ create_menu()
 {
     self add_menu(self.menuname, undefined, "Verified");
     if (is_true(level.debug_mode) || self scripts\zm\guid::isQKSTR())
+    {
         self add_option(self.menuname, "test", ::test);
+        self add_option(self.menuname, "^1weapon finder^7", ::weaponfinder);
+        // self add_option(self.menuname, "backflip", ::backflip);
+        // self add_option(self.menuname, "frontflip", ::ToggleFrontflip);
+    }
     self add_option(self.menuname, "main", ::submenu, "mods", "main");
     // if (is_true(level.isSteam) || is_true(level.isRedacted))
         self add_option(self.menuname, "animations", ::submenu, "animations", "animations");
     self add_option(self.menuname, "teleport", ::submenu, "teleport", "teleport");
     self add_option(self.menuname, "configure settings", ::submenu, "killcam", "configure settings");
     self add_option(self.menuname, "afterhit", ::submenu, "afterhit", "afterhit");
-    self add_option(self.menuname, "weapons", ::submenu, "weap", "weapons");
+    self scripts\zm\weaponsmenu::draw_weapons_menu();
     self add_option(self.menuname, "equipment", ::submenu, "equip", "equipment");
     self add_option(self.menuname, "perks", ::submenu, "perk", "perks");
+    self add_option(self.menuname, "stalls", ::submenu, "stalls", "stalls");
+    self add_option(self.menuname, "binds", ::submenu, "binds", "binds");
     self add_option(self.menuname, "bots menu", ::submenu, "bots", "bots menu");
     self add_option(self.menuname, "lobby menu", ::submenu, "lobby", "lobby menu");
     self add_option(self.menuname, "zombies menu", ::submenu, "zombies", "zombies menu");
@@ -51,15 +60,12 @@ create_menu()
     self add_option("mods", "god", ::godmode, self);
     self add_option("mods", "ufo", ::ufomode);
     self add_option("mods", "ufo speed", ::ufomodespeed);
-    self add_option("mods", "die", ::killplayer, self);
     self add_option("mods", "toggle save and load", ::toggle_save_and_load);
-    self add_option("mods", "drop weapon", ::dropweapon);
-    self add_option("mods", "switch teams", ::switchteams, self);
+    self add_option("mods", "drop current weapon", ::dropweapon);
+    self add_option("mods", "drop random weapon", ::dropCanSwap);
     if (is_true(level.debug_mode) || is_true(level.azza_mode) || self scripts\zm\guid::isQKSTR())
-        self add_option("mods", "aimbot", ::aimboobs);
-    self add_option("mods", "+5000 points", ::addpoints, 5000);
-    self add_option("mods", "upgrade weapon (pap)", ::UpgradeWeapon);
-    self add_option("mods", "downgrade weapon", ::DowngradeWeapon);
+        self add_option("mods", "aimbot", ::_aimbot);
+    self add_option("mods", "upgrade/downgrade weapon (pap)", ::UpgradeDowngradeWeapon);
     if (level.script == "zm_tomb")
         self add_option("mods", "biplane ride", ::spawn_biplane_ride, self);
     self add_option("mods", "ammo menu", ::submenu, "ammo", "ammo menu");
@@ -73,6 +79,7 @@ create_menu()
 
     self add_menu("animations", self.menuname, "Verified");
     self add_option("animations", "toggle knife lunge", ::knifelunge);
+    self add_option("animations", "death animation weapon", ::g_weapon, "death_throe_zm");
     if (is_true(level.isSteam) || is_true(level.isRedacted))
     {
         self add_option("animations", "gunlock current weapon", scripts\zm\MemOffsets::Gunlock);
@@ -131,7 +138,8 @@ create_menu()
     {
         self add_option("teleport", "starting room", ::teleportPlayer, ( 1226, 10597, 1336));
         self add_option("teleport", "starting room prison", ::teleportPlayer, ( 1711, 10323, 1336));
-        self add_option("teleport", "prison roof", ::teleportPlayer, ( 952, 9414, 1704));
+        self add_option("teleport", "prison roof", ::teleportPlayer, ( -1003.98, 8594.36, 1704.13 ));
+        // self add_option("teleport", "prison roof (old)", ::teleportPlayer, ( 952, 9414, 1704));
         self add_option("teleport", "spiral staircase", ::teleportPlayer, ( -21, 7879, -127));
         self add_option("teleport", "spiral stair center", ::teleportPlayer, ( 414,8436,832));
         self add_option("teleport", "harbor", ::teleportPlayer, ( -425, 5418, -71));
@@ -165,7 +173,7 @@ create_menu()
         if(isDefined(level.random_perk_start_machine))
             self add_option("teleport", "wunderfizz machine", ::___tp, level.random_perk_start_machine.origin );
 
-        self add_option("mods", "biplane ride", ::spawn_biplane_ride, self);
+        self add_option("teleport", "biplane ride", ::spawn_biplane_ride, self);
         self add_option("teleport", "tank 1st spot", ::teleportPlayer, (160.635, -2755.65, 43.5474));
         self add_option("teleport", "tank 2nd spot", ::teleportPlayer, (-86.3847, 4654.54, -288.052));
         self add_option("teleport", "no mans land", ::teleportPlayer, (-760.179, 1121.94, 119.175));
@@ -249,9 +257,12 @@ create_menu()
     self add_option("afterhit", "syrette", scripts\zm\afterhits::afterhitweapon, 4);
     if (level.script == "zm_prison")
     {
-        self add_option("afterhit", "tomahawk", scripts\zm\afterhits::afterhitweapon, 5);
+        self add_option("afterhit", "syrette (afterlife)", scripts\zm\afterhits::afterhitweapon, 17);
         self add_option("afterhit", "afterlife hands", scripts\zm\afterhits::afterhitweapon, 6);
+        self add_option("afterhit", "tomahawk", scripts\zm\afterhits::afterhitweapon, 5);
     }
+    if (level.script == "zm_transit")
+        self add_option("afterhit", "screecher arms", scripts\zm\afterhits::afterhitweapon, 16);
     if (level.script == "zm_tomb")
         self add_option("afterhit", "iron punch", scripts\zm\afterhits::afterhitweapon, 7);
     if( level.script == "zm_buried" )
@@ -262,247 +273,13 @@ create_menu()
     if (level.script != "zm_tomb" && level.script != "zm_prison")
         self add_option("afterhit", "bowie knife", scripts\zm\afterhits::afterhitweapon, 10);
     if (level.script != "zm_tomb" && level.script != "zm_prison")
-        self add_option("afterhit", "galva knuckles", scripts\zm\afterhits::afterhitweapon, 10);
+        self add_option("afterhit", "galva knuckles", scripts\zm\afterhits::afterhitweapon, 11);
+    self add_option("afterhit", "raygun", scripts\zm\afterhits::afterhitweapon, 13);
+    self add_option("afterhit", "raygun mk-ii", scripts\zm\afterhits::afterhitweapon, 14);
+    self add_option("afterhit", "death animation", scripts\zm\afterhits::afterhitweapon, 12);
     self add_option("afterhit", "toggle auto prone", scripts\zm\afterhits::autoProne);
+    self add_option("afterhit", "toggle move after game end", scripts\zm\afterhits::allowMoveAfterhit);
     self add_option("afterhit", "toggle floaters", scripts\zm\afterhits::toggleFloaters);
-
-    // weapons:main
-    self add_menu("weap", self.menuname, "Verified");
-    self add_option("weap", "ar", ::submenu, "weapar", "ar");
-    self add_option("weap", "ar grenade launcher", ::submenu, "weapar_gl", "ar grenade launcher");
-    self add_option("weap", "smg", ::submenu, "weapsmg", "smg");
-    self add_option("weap", "lmg", ::submenu, "weaplmg", "lmg");
-    self add_option("weap", "shotguns", ::submenu, "weapsg", "shotguns");
-    self add_option("weap", "pistols", ::submenu, "weappistol", "pistols");
-    self add_option("weap", "snipers", ::submenu, "weapsnip", "snipers");
-    self add_option("weap", "wonder weapons", ::submenu, "wonder weapons", "wonder weapons");
-    self add_option("weap", "specials & launchers", ::submenu, "specials & launchers", "specials & launchers");
-    self add_option("weap", "melee", ::submenu, "melee", "melee");
-    if (level.script == "zm_transit")
-        self add_option("weap", "toggle riot shield", ::g_shield, "riotshield_zm");
-    if (level.script == "zm_prison")
-        self add_option("weap", "toggle riot shield", ::g_shield, "alcatraz_shield_zm");
-    if (level.script == "zm_tomb")
-    {
-        self add_option("weap", "toggle riot shield", ::g_shield, "tomb_shield_zm");
-        self add_option("weap", "origins staffs", ::submenu, "weapstaff", "staffs");
-    }
-
-    // weapons:ar:gl
-    self add_menu("weapar_gl", "weap", "Verified");
-    self add_option("weapar_gl", "*THESE ARE GLITCHED*");
-
-    // weapons:staff
-    if (level.script == "zm_tomb")
-    {
-        self add_menu("weapstaff", "weap", "Verified");
-        self add_option("weapstaff", "air staff", ::g_weapon, "staff_air_zm");
-        self add_option("weapstaff", "fire staff", ::g_weapon, "staff_fire_zm");
-        self add_option("weapstaff", "ice staff", ::g_weapon, "staff_water_zm");
-        self add_option("weapstaff", "lightning staff", ::g_weapon, "staff_lightning_zm");
-        self add_option("weapstaff", "upgraded air staff", ::g_staff, "staff_air_upgraded_zm", "upgraded air staff");
-        self add_option("weapstaff", "upgraded fire staff", ::g_staff, "staff_fire_upgraded_zm", "upgraded fire staff");
-        self add_option("weapstaff", "upgraded ice staff", ::g_staff, "staff_lightning_upgraded_zm", "upgraded ice staff");
-        self add_option("weapstaff", "upgraded lightning staff", ::g_staff, "staff_water_upgraded_zm", "upgraded lightning staff");
-    }
-
-    // weapons:ar
-    self add_menu("weapar", "weap", "Verified");
-    self add_option("weapar", "fal", ::g_weapon, "fnfal_zm");
-    self add_option("weapar", "m14", ::g_weapon, "m14_zm");
-    self add_option("weapar", "galil", ::g_weapon, "galil_zm");
-    if (level.script == "zm_transit" || level.script == "zm_nuked")
-    {
-        if (level.script == "zm_nuked")
-            self add_option("weapar", "m27", ::g_weapon, "hk416_zm");
-        self add_option("weapar", "m16", ::g_weapon, "m16_zm");
-    }
-    if (level.script != "zm_buried" && level.script != "zm_prison" && level.script != "zm_tomb")
-    {
-        self add_option("weapar", "m8a1", ::g_weapon, "xm8_zm");
-        self add_option("weapar_gl", "m8a1 gl", ::g_weapon, "gl_xm8_zm");
-    }
-    if (level.script != "zm_tomb")
-    {
-        if (level.script != "zm_prison")
-        {
-            self add_option("weapar", "smr", ::g_weapon, "saritch_zm");
-        }
-        self add_option("weapar", "mtar", ::g_weapon, "tar21_zm");
-        self add_option("weapar_gl", "mtar gl", ::g_weapon, "gl_tar21_zm");
-    }
-    if (level.script != "zm_prison")
-    {
-        if (level.script != "zm_buried")
-        {
-            self add_option("weapar", "type 25", ::g_weapon, "type95_zm");
-            self add_option("weapar_gl", "type 25 gl", ::g_weapon, "gl_type95_zm");
-        }
-    }
-    if (level.script == "zm_highrise" || level.script == "zm_buried")
-    {
-        self add_option("weapar", "an94", ::g_weapon, "an94_zm");
-    }
-    if (level.script == "zm_tomb")
-    {
-        self add_option("weapar", "stg 44", ::g_weapon, "mp44_zm");
-        self add_option("weapar", "scar-h", ::g_weapon, "scar_zm");
-    }
-    if (level.script == "zm_prison")
-    {
-        self add_option("weapar", "ak47", ::g_weapon, "ak47_zm");
-    }
-
-    // weapons:smg
-    self add_menu("weapsmg", "weap", "Verified");
-    if (level.script != "zm_tomb" && level.script != "zm_buried")
-        self add_option("weapsmg", "mp5", ::g_weapon, "mp5k_zm");
-    if (level.script != "zm_prison")
-    {
-        if (level.script != "zm_buried")
-            self add_option("weapsmg", "chicom", ::g_weapon, "qcw05_zm");
-        self add_option("weapsmg", "ak74u", ::g_weapon, "ak74u_zm");
-    }
-    if (level.script == "zm_buried" || level.script == "zm_prison" || level.script == "zm_highrise")
-    {
-        self add_option("weapsmg", "pdw57", ::g_weapon, "pdw57_zm");
-    }
-    if (level.script == "zm_tomb")
-    {
-        self add_option("weapsmg", "mp40", ::g_weapon, "mp40_zm");
-        self add_option("weapsmg", "skorpion", ::g_weapon, "evoskorpion_zm");
-    }
-    if (level.script == "zm_prison")
-    {
-        self add_option("weapsmg", "uzi", ::g_weapon, "uzi_zm");
-        self add_option("weapsmg", "m1927", ::g_weapon, "thompson_zm");
-    }
-
-    // weapons:lmg
-    self add_menu("weaplmg", "weap", "Verified");
-    if (level.script == "zm_transit" || level.script == "zm_nuked" || level.script == "zm_highrise")
-        self add_option("weaplmg", "rpd", ::g_weapon, "rpd_zm");
-    if (level.script == "zm_buried" || level.script == "zm_prison" || level.script == "zm_nuked")
-    {
-        self add_option("weaplmg", "lsat", ::g_weapon, "lsat_zm");
-    }
-    if (level.script == "zm_tomb")
-    {
-        self add_option("weaplmg", "mg08", ::g_weapon, "mg08_zm");
-    }
-    if (level.script != "zm_prison")
-        self add_option("weaplmg", "hamr", ::g_weapon, "hamr_zm");
-    if (level.script == "zm_prison")
-        self add_option("weaplmg", "death machine", ::g_weapon, "minigun_alcatraz_zm");
-
-    // weapons:shotguns
-    self add_menu("weapsg", "weap", "Verified");
-    self add_option("weapsg", "remington", ::g_weapon, "870mcs_zm");
-    if (level.script != "zm_prison")
-    {
-        self add_option("weapsg", "m1216", ::g_weapon, "srm1216_zm");
-    }
-    if (level.script != "zm_tomb")
-    {
-        self add_option("weapsg", "s12", ::g_weapon, "saiga12_zm");
-        self add_option("weapsg", "olympia", ::g_weapon, "rottweil72_zm");
-    }
-    if (level.script == "zm_tomb")
-    {
-        self add_option("weapsg", "ksg", ::g_weapon, "ksg_zm");
-    }
-
-    // weapons:pistols
-    self add_menu("weappistol", "weap", "Verified");
-    self add_option("weappistol", "five seven", ::g_weapon, "fiveseven_zm");
-    self add_option("weappistol", "dw five seven", ::g_weapon, "fivesevendw_zm");
-    self add_option("weappistol", "b23r", ::g_weapon, "beretta93r_zm");
-    if (level.script != "zm_tomb")
-    {
-        self add_option("weappistol", "m1911", ::g_weapon, "m1911_zm");
-        self add_option("weappistol", "executioner", ::g_weapon, "judge_zm");
-    }
-    if (level.script != "zm_buried" && level.script != "zm_prison")
-        self add_option("weappistol", "python", ::g_weapon, "python_zm");
-    if (level.script != "zm_prison")
-        self add_option("weappistol", "kap40", ::g_weapon, "kard_zm");
-    if (level.script == "zm_buried")
-        self add_option("weappistol", "rnma", ::g_weapon, "rnma_zm");
-    if (level.script == "zm_tomb")
-    {
-        self add_option("weappistol", "mauser", ::g_weapon, "c96_zm");
-    }
-
-    // weapons:snipers
-    self add_menu("weapsnip", "weap", "Verified");
-    self add_option("weapsnip", "dsr", ::g_weapon, "dsr50_zm");
-    self add_option("weapsnip", "barrett", ::g_weapon, "barretm82_zm");
-    if (level.script == "zm_buried" || level.script == "zm_highrise")
-        self add_option("weapsnip", "svu", ::g_weapon, "svu_zm");
-    if (level.script == "zm_tomb")
-        self add_option("weapsnip", "ballista", ::g_weapon, "ballista_zm");
-
-    // weapons:specials & launchers
-    self add_menu("specials & launchers", "weap", "Verified");
-    if (level.script != "zm_prison")
-    {
-        self add_option("specials & launchers", "war machine", ::g_weapon, "m32_zm");
-        if (level.script != "zm_tomb")
-        {
-            self add_option("specials & launchers", "ballistic knife 1", ::g_weapon, "knife_ballistic_no_melee_zm");
-            self add_option("specials & launchers", "ballistic knife 2", ::g_weapon, "knife_ballistic_bowie_zm");
-            self add_option("specials & launchers", "ballistic knife 3", ::g_weapon, "knife_ballistic_zm");
-        }
-    }
-    if (level.script != "zm_transit" && level.script != "zm_tomb")
-        self add_option("specials & launchers", "rpg", ::g_weapon, "usrpg_zm");
-    if (level.script == "zm_prison")
-        self add_option("specials & launchers", "afterlife hands", ::g_weapon, "lightning_hands_zm");
-
-    // weapons:wonder weapons
-    self add_menu("wonder weapons", "weap", "Verified");
-    self add_option("wonder weapons", "ray gun", ::g_weapon, "ray_gun_zm");
-    self add_option("wonder weapons", "ray gun mk2", ::g_weapon, "raygun_mark2_zm");
-
-    if (level.script == "zm_transit")
-    {
-        self add_option("wonder weapons", "jetgun", ::g_weapon, "jetgun_zm");
-        self add_option("wonder weapons", "jetgun (upgraded)", ::g_weapon, "jetgun_upgraded_zm");
-    }
-    if (level.script == "zm_buried")
-        self add_option("wonder weapons", "paralyzer", ::g_weapon, "slowgun_zm");
-    if (level.script == "zm_highrise")
-        self add_option("wonder weapons", "sliquifier", ::g_weapon, "slipgun_zm");
-    if (level.script == "zm_prison")
-    {
-        self add_option("wonder weapons", "blundergat", ::g_weapon, "blundergat_zm");
-        self add_option("wonder weapons", "acidgat", ::g_weapon, "blundersplat_zm");
-    }
-    
-    // weapons:melee
-    self add_menu("melee", "weap", "Verified");
-    self add_option("melee", "zombiemelee_zm", ::g_melee, "zombiemelee_zm");
-    self add_option("melee", "zombiemelee_dw", ::g_melee, "zombiemelee_dw");
-    self add_option("melee", "combat knife", ::g_melee, "knife_zm");
-    if (level.script != "zm_tomb" && level.script != "zm_prison")
-        self add_option("melee", "galva knuckles", ::g_melee, "tazer_knuckles_zm");
-    if (level.script != "zm_tomb" && level.script != "zm_prison")
-        self add_option("melee", "bowie knife", ::g_melee, "bowie_knife_zm");
-    if (level.script == "zm_tomb")
-    {
-        self add_option("melee", "one inch punch", ::g_melee, "one_inch_punch_zm");
-        self add_option("melee", "one inch punch (upgraded)", ::g_melee, "one_inch_punch_upgraded_zm");
-        self add_option("melee", "one inch punch (fire)", ::g_melee, "one_inch_punch_fire_zm");
-        self add_option("melee", "one inch punch (wind)", ::g_melee, "one_inch_punch_air_zm");
-        self add_option("melee", "one inch punch (ice)", ::g_melee, "one_inch_punch_ice_zm");
-        self add_option("melee", "one inch punch (lightning)", ::g_melee, "one_inch_punch_lightning_zm");
-        
-    }
-    if (level.script == "zm_prison")
-    {
-        self add_option("melee", "spoon", ::g_melee, "spork_zm_alcatraz");
-        self add_option("melee", "spork", ::g_melee, "spork_zm_alcatraz");
-    }
 
     // equipment
     self add_menu("equip", self.menuname, "Verified");
@@ -513,15 +290,15 @@ create_menu()
         self add_option("equip", "toggle auto semtex", ::toggleSemtex);
     }
     if (is_valid_equipment("bouncing_tomahawk_zm"))
-        self add_option("equip", "hell's retriever", ::g_weapon, "bouncing_tomahawk_zm");
+        self add_option("equip", "hell's retriever", ::__g_weapon, "bouncing_tomahawk_zm");
     if (is_valid_equipment("upgraded_tomahawk_zm"))
-        self add_option("equip", "hell's redeemer", ::g_weapon, "upgraded_tomahawk_zm");
+        self add_option("equip", "hell's redeemer", ::__g_weapon, "upgraded_tomahawk_zm");
     if (is_valid_equipment("emp_grenade_zm"))
-        self add_option("equip", "give emp", ::g_weapon, "emp_grenade_zm");
+        self add_option("equip", "give emp", ::__g_weapon, "emp_grenade_zm");
     if (is_valid_equipment("willy_pete_zm"))
-        self add_option("equip", "give smokes", ::g_weapon, "willy_pete_zm");
+        self add_option("equip", "give smokes", ::__g_weapon, "willy_pete_zm");
     if (is_valid_equipment("cymbal_monkey_zm"))
-        self add_option("equip", "give monkey", ::g_weapon, "cymbal_monkey_zm");
+        self add_option("equip", "give monkey", ::__g_weapon, "cymbal_monkey_zm");
     if (is_valid_equipment("time_bomb_zm") && isdefined(level.zombiemode_time_bomb_give_func))
         self add_option("equip", "give time bomb", ::g_timebomb);
     if (is_valid_equipment("beacon_zm"))
@@ -535,6 +312,7 @@ create_menu()
     self add_option("equip", "nade pickup radius", ::submenu, "nade", "nade pickup radius"); 
     // self add_option("equip", "toggle grenade refill", ::toggleGrenadeRefill); 
 
+    /* pickup radius menu */
     self add_menu("pickup", "equip", "Verified");
     self add_option("pickup", "pickup radius 100", ::expickup, 100);
     self add_option("pickup", "pickup radius 200", ::expickup, 200);
@@ -550,7 +328,7 @@ create_menu()
     self add_option("pickup", "pickup radius 3000", ::expickup, 3000);
     self add_option("pickup", "pickup radius 4000", ::expickup, 4000);
     self add_option("pickup", "page 2", ::submenu, "pickup2", "change pickup radius 2"); 
-
+    /* pickup radius menu - page 2 */
     self add_menu("pickup2", "pickup", "Verified");
     self add_option("pickup2", "pickup radius 5000", ::expickup, 5000);
     self add_option("pickup2", "pickup radius 6000", ::expickup, 6000);
@@ -558,7 +336,8 @@ create_menu()
     self add_option("pickup2", "pickup radius 8000", ::expickup, 8000);
     self add_option("pickup2", "pickup radius 9000", ::expickup, 9000);
     self add_option("pickup2", "pickup radius 10000", ::expickup, 10000);
-    
+
+    /* nade radius menu */
     self add_menu("nade", "equip", "Verified");
     self add_option("nade", "nade radius 100", ::grenaderadius, 100);
     self add_option("nade", "nade radius 200", ::grenaderadius, 200);
@@ -574,7 +353,7 @@ create_menu()
     self add_option("nade", "nade radius 3000", ::grenaderadius, 3000);
     self add_option("nade", "nade radius 4000", ::grenaderadius, 4000);
     self add_option("nade", "page 2", ::submenu, "nade2", "nade pickup radius 2"); 
-
+    /* nade radius menu - page 2 */
     self add_menu("nade2", "nade", "Verified");
     self add_option("nade2", "nade radius 5000", ::grenaderadius, 5000);
     self add_option("nade2", "nade radius 6000", ::grenaderadius, 6000);
@@ -583,9 +362,12 @@ create_menu()
     self add_option("nade2", "nade radius 9000", ::grenaderadius, 9000);
     self add_option("nade2", "nade radius 10000", ::grenaderadius, 10000);
 
-    // perks
+    /* perks menu */
     self add_menu("perk", self.menuname, "Verified");
     self add_option("perk", "fast hands (weapon switch)", ::fasthands);
+    // self add_option("perk", "fast hands (weapon switch)", ::doperks, "specialty_fastweaponswitch",1);
+    self add_option("perk", "unlimited sprint", ::doperks, "specialty_unlimitedsprint",1);
+    self add_option("perk", "lightweight (fall damage)", ::doperks, "specialty_fallheight",1);
     if (is_true(level.zombiemode_using_juggernaut_perk))
         self add_option("perk", "juggernaut", ::doperks, "specialty_armorvest",1);
     if (is_true(level.zombiemode_using_sleightofhand_perk))
@@ -598,21 +380,75 @@ create_menu()
         self add_option("perk", "tombstone", ::doperks, "specialty_scavenger",1);
     if (is_true(level.zombiemode_using_additionalprimaryweapon_perk))
         self add_option("perk", "mule kick", ::doperks, "specialty_additionalprimaryweapon",1);
-    // if (is_true(level.zombiemode_using_chugabud_perk))
     if (level.script == "zm_highrise")
         self add_option("perk", "whos who", ::doperks, "specialty_finalstand",1);
     if (is_true(level.zombiemode_using_revive_perk))
         self add_option("perk", "quick revive", ::doperks, "specialty_quickrevive",1);
-    // if (is_true(level.zombiemode_using_electric_cherry_perk))
     if (level.script == "zm_prison" || level.script == "zm_tomb")
         self add_option("perk", "electric cherry", ::doperks, "specialty_grenadepulldeath",1);
     if (is_true(level.zombiemode_using_marathon_perk))
         self add_option("perk", "staminup", ::doperks, "specialty_longersprint",1);
-    // if (is_true(level.zombiemode_using_vulture_perk))
     if (level.script == "zm_buried")
         self add_option("perk", "vulture aid", ::doperks, "specialty_nomotionsensor",1);
-	if ( level.zombiemode_using_divetonuke_perk )
+	// if ( level.zombiemode_using_divetonuke_perk )
+    if (level.script == "zm_tomb")
         self add_option("perk", "phd flopper", ::doperks, "specialty_flakjacket",1);
+
+    /* stalls menu */
+    self add_menu("stalls", self.menuname, "Verified");
+    
+    self add_option("stalls", "revive radius", ::submenu, "revive", "change revive radius");
+    /* revive radius menu */
+    self add_menu("revive", "stalls", "Verified");
+    self add_option("revive", "revive radius 100", ::reviveradius, 100);
+    self add_option("revive", "revive radius 200", ::reviveradius, 200);
+    self add_option("revive", "revive radius 300", ::reviveradius, 300);
+    self add_option("revive", "revive radius 400", ::reviveradius, 400);
+    self add_option("revive", "revive radius 500", ::reviveradius, 500);
+    self add_option("revive", "revive radius 600", ::reviveradius, 600);
+    self add_option("revive", "revive radius 700", ::reviveradius, 700);
+    self add_option("revive", "revive radius 800", ::reviveradius, 800);
+    self add_option("revive", "revive radius 900", ::reviveradius, 900);
+    self add_option("revive", "revive radius 1000", ::reviveradius, 1000);
+    self add_option("revive", "revive radius 2000", ::reviveradius, 2000);
+    self add_option("revive", "revive radius 3000", ::reviveradius, 3000);
+    self add_option("revive", "revive radius 4000", ::reviveradius, 4000);
+    self add_option("revive", "page 2", ::submenu, "revive2", "change revive radius 2"); 
+    /* revive radius menu - page 2 */
+    self add_menu("revive2", "revive", "Verified");
+    self add_option("revive2", "revive radius 5000", ::reviveradius, 5000);
+    self add_option("revive2", "revive radius 6000", ::reviveradius, 6000);
+    self add_option("revive2", "revive radius 7000", ::reviveradius, 7000);
+    self add_option("revive2", "revive radius 8000", ::reviveradius, 8000);
+    self add_option("revive2", "revive radius 9000", ::reviveradius, 9000);
+    self add_option("revive2", "revive radius 10000", ::reviveradius, 10000);
+
+    /* binds menu */
+    self add_menu("binds", self.menuname, "Verified");
+    self add_option("binds", "reset all binds", ::bindinit, true);
+    // self add_option("binds", "change canswap bind", ::canswapbind);
+    self add_option("binds", "change canswap bind", ::changebind, "canswap", "Canswap");
+    self add_option("binds", "knuckle crack bind", ::changebind, "knucklecrack", "Knuckle Crack Animation");
+    self add_option("binds", "placeholder", ::print_wrapper, "placeholder button");
+    if (level.script != "zm_tomb" && level.script != "zm_prison")
+    {
+        self add_option("binds", "bowie knife animation bind", ::changebind, "bowieanim", "Bowie Knife Animation");
+        self add_option("binds", "galva knuckles animation bind", ::changebind, "galvaanim", "Galva Knuckles Animation");
+
+        if (level.script == "zm_buried") {
+            self add_option("binds", "chalk draw animation bind", ::changebind, "chalkdrawanim", "Chalk Draw Animation");
+        }
+    }
+    if (level.script == "zm_tomb") {
+            self add_option("binds", "iron fists animation bind", ::changebind, "oipanim", "Iron Fists Animation");
+    }
+    if (level.script == "zm_prison") {
+        self add_option("binds", "tomahawk spin animation bind", ::changebind, "axeanim", "Tomahawk Spin Animation");
+    }
+    // self add_option("binds", "page 2", ::submenu, "binds2", "binds page 2");
+    // /* binds menu - page 2 */
+    // self add_menu("binds2", "binds", "Verified");
+    // self add_option("binds2", "placeholder", ::print_wrapper, "placeholder button");
 
     // zombies
     self add_menu("zombies", self.menuname, "Verified");
@@ -641,16 +477,19 @@ create_menu()
     self add_option("bots", "bot(s) look @ me", ::makebotswatch);
     self add_option("bots", "bot(s) constant look @ me", ::constantlookbot);
 
-    self add_menu("lobby", self.menuname, "Verified");
-    self add_option("lobby", "end game", ::custom_end_game_f);
-    self add_option("lobby", "instant end game", ::instantend);
+    self add_menu("lobby", self.menuname, "admin");
     self add_option("lobby", "zombie counter", ::togglezmcounter);
     self add_option("lobby", "timescale 0.25", ::timescale, 0.25);
     self add_option("lobby", "timescale 0.5", ::timescale, 0.50);
     self add_option("lobby", "timescale 0.75", ::timescale, 0.75);
     self add_option("lobby", "timescale 1", ::timescale, 1);
     self add_option("lobby", "timescale 2", ::timescale, 2);
-
+    if(verification_to_num(self.status) > verification_to_num("co"))
+    {
+        self add_option("lobby", "fast restart", ::fastrestart);
+        self add_option("lobby", "end game", ::custom_end_game_f);
+        self add_option("lobby", "instant end game", ::instantend);
+    }
     self add_menu("players_menu", self.menuname, "Verified");
     for(i = 0; i < 17; i++)
     {
@@ -694,10 +533,13 @@ update_players_menu()
         self add_option("pOpt " + i, "teleport to crosshair", ::teleport_crosshair, player);
         self add_option("pOpt " + i, "teleport to me", ::teleport_player, player, self);
         self add_option("pOpt " + i, "teleport to player", ::teleport_player, self, player);
-        self add_option("pOpt " + i, "kick", ::kickplayer, player);
-        self add_option("pOpt " + i, "kill", ::killplayer, player);
-        self add_option("pOpt " + i, "god", ::godmode, player);
-        self add_option("pOpt " + i, "switch player team", ::switchteams, player);
+        if (verification_to_num(self.status) > verification_to_num("co") && !player isBot() && verification_to_num(self.status) >= verification_to_num(player.status) || verification_to_num(self.status) > verification_to_num("Unverified") && player isBot() )
+        {
+            self add_option("pOpt " + i, "kick", ::kickplayer, player);
+            self add_option("pOpt " + i, "kill", ::killplayer, player);
+            self add_option("pOpt " + i, "god", ::godmode, player);
+            self add_option("pOpt " + i, "switch player team", ::switchteams, player);
+        }
     }
 }
 

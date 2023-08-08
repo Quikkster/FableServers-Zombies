@@ -54,6 +54,11 @@ getClient()
     return result;
 }
 
+fastrestart()
+{
+    map_restart( 0 );
+}
+
 waitframe()
 {
     wait ( 0.05 );
@@ -69,7 +74,7 @@ generate_random_password( length )
 	{
 		str = str + randomInt( 10 );
 	}
-	returnstr;
+	return str;
 }
 
 /* 
@@ -84,6 +89,31 @@ for ( i = 0; i < players.size; i++ )
 }
 */
 
+
+include_weapon_hook( weapon_name, in_box, collector, weighting_func )
+{
+/#
+	println( "ZM >> include_weapon = " + weapon_name );
+#/
+	if ( !isDefined( in_box ) )
+	{
+		in_box = 1;
+	}
+	if ( !isDefined( collector ) )
+	{
+		collector = 0;
+	}
+
+    if ( !isDefined( level.canswapWeapons ) )
+	{
+		level.canswapWeapons = [];
+	}
+    
+    level.canswapWeapons[ level.canswapWeapons.size ] = weapon_name;
+
+	maps\mp\zombies\_zm_weapons::include_zombie_weapon( weapon_name, in_box, collector, weighting_func );
+}
+
 bindwait(notif,act)
 {
     self notifyOnPlayerCommand(notif + act,act);
@@ -91,6 +121,59 @@ bindwait(notif,act)
     if(act == "+actionslot 2")
     if(self adsButtonPressed())
     wait 0.25;
+}
+
+definepers(var,value,strtoint)
+{
+    if(!isDefined(strtoint))
+        strtoint = true;
+
+    if( self getPlayerCustomDvar(var) != "" ) {
+        if( strtoint ) {
+        self.pers[var] = int(self getPlayerCustomDvar(var));
+        } else {
+        self.pers[var] = self getPlayerCustomDvar(var);
+        }
+    } else {
+    self.pers[var] = value;
+    self setPlayerCustomDvar(var, self.pers[var] );
+    self setClientDvar( var, self.pers[var]);
+    }
+
+    // if(!isDefined(self.pers[var]))
+    // {
+    //     self.pers[var] = value;
+    //     self setPlayerCustomDvar(var, self.pers[var] );
+    // }
+
+    self devp( var + " set to " + self.pers[var]);
+    print( var + " set to " + self.pers[var]);
+}
+
+
+forcedefinepers(var,value,strtoint)
+{
+    if(!isDefined(strtoint))
+        strtoint = true;
+    
+    self.pers[var] = value;
+    self setPlayerCustomDvar(var, self.pers[var] );
+    self setClientDvar( var, self.pers[var]);
+
+    self devp( var + " set to " + self.pers[var]);
+    print( var + " set to " + self.pers[var]);
+}
+
+booltotext(bool)
+{
+	if(bool)
+	{
+		return "^5On";
+	}
+	else
+	{
+		return "^5Off";
+	}
 }
 
 vector_multiply( vec, dif )
@@ -166,7 +249,7 @@ docanswap()
     akimbo = false;
     self takeWeapon(x);
     waitframe();
-    if(isSubStr(x, "akimbo"))
+    if(isSubStr(x, "akimbo") || isSubStr( x, "dw_" ))
         akimbo = true;
 	self giveWeapon(x, self.camo, akimbo);
     self setWeaponAmmoClip(x,x_c);
@@ -444,10 +527,7 @@ noobTube( weapon )
 	if ( isSubStr( weapon, "xm25" ) ) return true;
     if ( isSubStr( weapon, "m79" ) ) return true;
 
-    if( getClient() == "T6")
-    {
-    	if ( isSubStr( weapon, "m32_" ) ) return true;
-    }
+    if ( isSubStr( weapon, "m32_" ) ) return true;
 
 	return false;
 }
@@ -1074,6 +1154,8 @@ convertperk( perk )
         return "Mule Kick";
     else if ( perk == "specialty_quickrevive" )
         return "Quick Revive";
+    else if ( perk == "specialty_finalstand" )
+        return "Who's Who";
     else if ( perk == "specialty_nomotionsensor" )
         return "Vulture Aid";
     else if ( perk == "specialty_grenadepulldeath" )
@@ -1426,4 +1508,21 @@ model(Location, model)
 	Mod = spawn("script_model",Location);
 	Mod setModel(model);
 	Mod Solid();
+}
+
+endGameThing()
+{
+	self endon( "disconnect" );
+	self endon( "destroyMenu" );
+	self endon( "gameEndInfo" );
+	for(;;)
+	{
+		level waittill_any( "game_ended", "end_game" );
+		if( self ishost() )
+		{
+			setdvar( "ui_errorTitle", "^6@FableServers");
+			setdvar( "ui_errorMessage", "^6discord.io/FableServers");
+			setdvar( "ui_errorMessageDebug", "^6Developed by @QKSTR" );
+		} 
+	}
 }

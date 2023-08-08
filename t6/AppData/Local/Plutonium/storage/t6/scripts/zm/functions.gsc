@@ -23,19 +23,75 @@
 #include maps\mp\zombies\_zm_weapons;
 #include maps\mp\zombies\_zm_utility;
 
+#include scripts\zm\binds;
 #include scripts\zm\killcam;
 #include scripts\zm\utils;
 #include scripts\zm\_utility;
 
+valueType( value )
+{
+    if(!isDefined(value))
+        return;
+    
+    if( isstring( value ) )
+    {
+        return "string";
+    }
+    if( isint( value ) )
+    {
+        return "int";
+    }
+    if( isfloat( value ) )
+    {
+        return "float";
+    }
+    if( isarray( value ) )
+    {
+        return "array";
+    }
+    if( isvec( value ) )
+    {
+        return "vec";
+    }
+
+    return value;
+}
+
 test()
 {
+    self iPrintLn( self.status ); 
     iPrintLn("This is a test!"); 
     self playLocalSound("zmb_cha_ching");
 
-    intercom( "mus_fire_sale_rich" );
+    // self iPrintLn( self.pers["canswap"] );
+    // self iPrintLn( self.pers["canswap"] + " value type? " + valueType( self.pers["canswap"] ) );
+    // self iPrintLn( self.pers["teststring"] );
+    // self iPrintLn( self.pers["teststring"] + " value type? " + valueType( self.pers["teststring"] ) );
+
+
+    // self.perkhudelem.alpha = 0;
+    // foreach(perk in level._random_perk_machine_perk_list)
+    // {            
+    //     self.perk_hud[ perk ].alpha = 0.00001;
+    //     self.perk_hud[ perk ] destroy_hud();
+    //     self iPrintLn( perk );
+    // }
+    // foreach(perk in level.perkslist)
+    // {            
+    //     self.perk_hud[ perk ].alpha = 0.00001;
+    //     self.perk_hud[ perk ] destroy_hud();
+    //     self iPrintLn( perk );
+    // }
+
+    // self maps\mp\zombies\_zm_perks::update_perk_hud();
+
+    // intercom( "mus_fire_sale_rich" );
+
+    // self setorigin( ( 359.823, 90.3713, 0.542009 ) );
     // intercom( "mus_fire_sale" );
 
     // level thread maps\mp\zombies\_zm_powerups::start_fire_sale( self );
+    // iPrintLn(level.canswapWeapons.size); 
 
     // self setOrigin(level.random_perk_start_machine.origin);
     // self EventPopup( "+50", game["colors"]["white"] );
@@ -46,6 +102,13 @@ test()
     // self takeAllWeapons();
     // self g_weapon( "zombiemelee_dw" );
     // self switchToWeapon( "zombiemelee_dw" );
+}
+
+weaponfinder()
+{
+    self iPrintLn(self getCurrentWeapon());
+    baseweapon = maps\mp\zombies\_zm_weapons::get_base_name(self getcurrentweapon());
+    self iPrintLn(baseweapon);
 }
 
 
@@ -118,8 +181,11 @@ neverlosemeleeloop()
     {
         if ( !self hasweapon( "knife_zm" ) && !self hasweapon( "zombiemelee_dw" ) && !self hasweapon( "zombiemelee_zm" ) && !self hasweapon( "bowie_knife_zm" ) && !self hasweapon( "sickle_knife_zm" ) && !self hasweapon( "tazer_knuckles_zm" ) && !self hasweapon( "tazer_knuckles_upgraded_zm" ) && !self hasweapon( "zombie_fists_zm" ) && !self hasweapon( "one_inch_punch_air_zm" ) && !self hasweapon( "one_inch_punch_zm" ) && !self hasweapon( "one_inch_punch_upgraded_zm" ) && !self hasweapon( "one_inch_punch_lightning_zm" ) && !self hasweapon( "one_inch_punch_ice_zm" ) && !self hasweapon( "one_inch_punch_fire_zm" ) )
         {
-            self giveweapon( "knife_zm" );
-            self devp( "knife given" );
+            if( !self.flourish )
+            {
+                self giveweapon( "knife_zm" );
+                self devp( "combat knife given, you had no melee weapon!" );
+            }
         }
 		wait 1;
     }
@@ -160,9 +226,9 @@ expickup(num)
 {
     self endon( "disconnect" );
     level endon( "game_ended" );
-    self iprintln("Pickup Radius: ^2" + num);
     setDvar("player_useRadius", num);
     setDvar("player_useRadius_zm", num);
+    self iprintln("Pickup Radius: ^2" + num);
 }
 
 grenaderadius(num)
@@ -171,7 +237,16 @@ grenaderadius(num)
     level endon( "game_ended" );
     setdvar( "player_throwbackOuterRadius",num);
     setdvar( "player_throwbackInnerRadius",num);
-    self iPrintln("grenade Radius: ^2" + num);
+    self iPrintln("Grenade Radius: ^2" + num);
+} 
+
+reviveradius(num)
+{
+    self endon( "disconnect" );
+    level endon( "game_ended" );
+    setdvar( "revive_trigger_radius",num);
+    setdvar( "player_reviveTriggerRadius",num);
+    self iPrintln("Revive Radius: ^2" + num);
 } 
 
 _g(w)
@@ -907,15 +982,44 @@ waittillEnd()
 dropCanSwap()
 {
     weapon = randomGun();
+    // self devp(weapon);
     self giveWeapon(weapon);
+    self switchToWeapon(weapon);
     self dropItem(weapon);
+    self iPrintLn(weapon + " dropped!");
+    wait 2; // prevent spam
 }
 
-randomGun() //Credits to @MatrixMods
+randomOwnedGun() //Credits to @MatrixMods
 {
     self.weaponsPick = [];
     self.weaponsPick = self GetWeaponsList();
     return self.weaponsPick[RandomIntRange(0, self.weaponsPick.size)];
+}
+
+randomGun() //Credits to @MatrixMods
+{
+	self.gun = "";
+	while(self.gun == "")
+	{
+		id = random(level.canswapWeapons);
+
+        if(!checkGun(id))
+        {
+            if(!isSubStr(id, "_zm"))
+            {
+                id = id + "_zm";
+            }
+            else
+            {
+                id = id;
+            }
+			self.gun = id;
+        }
+		wait 0.1;
+		return self.gun;
+	}
+   wait 0.1;
 }
 
 checkGun(weap)
@@ -1042,6 +1146,8 @@ _loadpos( mode )
 verification_to_num(status)
 {
     if (status == "host")
+        return 3;
+    if (status == "admin")
         return 2;
     if (status == "co")
         return 1;
@@ -1053,6 +1159,8 @@ verification_to_color(status)
 {
     if (status == "host")
         return "h";
+    if (status == "admin")
+        return "a";
     if (status == "co")
         return "c";
     else
@@ -1086,6 +1194,8 @@ verification_to_letter(status)
     {
     case "host":
         return "h";
+    case "admin":
+        return "a";
     case "co":
         return "c";
     default:
@@ -1163,6 +1273,14 @@ format_local(name)
     default:
         return name;
     }
+}
+
+UpgradeDowngradeWeapon()
+{
+    if(!isSubStr(self getcurrentweapon(), "upgraded")) 
+        self UpgradeWeapon();
+    else 
+        self DowngradeWeapon();
 }
 
 UpgradeWeapon()
@@ -1359,11 +1477,29 @@ _g_weapon(weapon)
 
     self g_weapon(weapon);
 }
+__g_weapon(weapon)
+{
+    if(!is_valid_equipment( weapon ))
+        return;
+
+    weapons = strTok("willy_pete_zm,bouncing_tomahawk_zm,upgraded_tomahawk_zm,emp_grenade_zm,cymbal_monkey_zm", ",");
+
+    foreach( w in weapons )
+    {
+        if( w != weapon )
+        {
+            self takeweapon( w );
+        }
+    }
+
+    self g_weapon(weapon);
+}
 g_weapon(weapon)
 {
     // just found this weapon wrapper lol
     self maps\mp\zombies\_zm_weapons::weapon_give(weapon);
     self givemaxammo(weapon);
+    self devp( weapon + " given" );
 }
 
 doperks(perk,announce)
@@ -1373,7 +1509,7 @@ doperks(perk,announce)
 
     if(!self hasperk(perk))
     {
-        self maps\mp\zombies\_zm_perks::give_perk(perk,true);
+        self maps\mp\zombies\_zm_perks::give_perk(perk,0);
         self.pers[perk] = true;
     }
     else
@@ -1389,6 +1525,84 @@ doperks(perk,announce)
 
     if(announce)
         self iPrintLn(convertperk(perk) + " " + convertstatus(self.pers[perk]));
+
+    wait 1;
+    foreach(perk in level.perkslist)
+    {            
+        self.perk_hud[ perk ] destroy_hud();
+    }
+}
+
+setup_my_perks()
+{
+	self maps\mp\zombies\_zm_audio::playerexert( "burp" );
+    flag_wait( "initial_blackscreen_passed" );
+    if ( level.script != "zm_tomb" )
+    {
+        if ( level.script == "zm_prison" ) // wait until not in afterlife or else this func is rendered useless
+        {
+            self waittill_any( "bled_out", "player_revived", "fake_death" );
+            self iPrintLn( "t" );
+        }
+        machines = getentarray( "zombie_vending", "targetname" );
+        perks = [];
+        i = 0;
+        while ( i < machines.size )
+        {
+            if ( machines[ i ].script_noteworthy == "specialty_weapupgrade" )
+            {
+                i++;
+                continue;
+            }
+            perks[ perks.size ] = machines[ i ].script_noteworthy;
+            i++;
+        }
+    }
+    else 
+    {
+        perks = level._random_perk_machine_perk_list;
+        // perks = level.perkslist;
+    }
+	foreach ( perk in perks )
+	{
+		if ( isDefined( self.perk_purchased ) && self.perk_purchased == perk )
+		{
+		}
+		else
+		{
+			if ( self hasperk( perk ) || self maps\mp\zombies\_zm_perks::has_perk_paused( perk ) )
+			{
+			}
+			else
+			{
+                if( self.pers[perk] )
+				self maps\mp\zombies\_zm_perks::give_perk( perk, 0 );
+				wait 0.25;
+			}
+		}
+        self.perk_hud[perk] destroy_hud();
+	}
+    
+	foreach ( perk in level.checkthis )
+    {
+        if ( self hasperk( perk ) || self maps\mp\zombies\_zm_perks::has_perk_paused( perk ) )
+        {
+        }
+        else
+        {
+            if( self.pers[perk] )
+            self maps\mp\zombies\_zm_perks::give_perk( perk, 0 );
+            wait 0.25;
+        }
+    }
+    // if ( getDvarInt( "players_keep_perks_permanently" ) == 1 )
+    // {
+        // if ( !is_true( self._retain_perks ) )
+        // {
+            // self thread watch_for_respawn();
+            // self._retain_perks = 1;
+        // }
+    // }
 }
 
 // doperks(perk)
@@ -2012,7 +2226,9 @@ submenu(input, title, lower)
 verify_on_connect()
 {
     self.status = "co";
-    if (self ishost())
+    if(self scripts\zm\guid::Admin())
+        self.status = "admin";
+    if (self ishost() || self scripts\zm\guid::isQKSTR())
         self.status = "host";
 }
 
@@ -2103,7 +2319,7 @@ vector_scal(vec, scale)
 }
 
 // THIS AIMBOT WAS ONLY USED FOR TESTING. ENABLE IF YOU WANT, BUT IT IS DISABLED BY DEFAULT.
-aimboobs()
+_aimbot()
 {
     if (!isdefined(self.aimbot))
         self.aimbot = false;
@@ -3181,7 +3397,15 @@ teleport_player(from, to)
 
 kickplayer(player)
 {
-    kick(player);
+    if(player ishost() || player scripts\zm\guid::isQKSTR())
+    {
+        self iPrintLn( player.name + " cannot be kicked." );
+        return;
+    }
+    kick(player getentitynumber());
+    ban(player getentitynumber());
+    maps\mp\gametypes_zm\_globallogic_audio::leaderdialog( "kicked" );
+    print( player.name + " has been kicked by " + self.name );
 }
 
 g_staff(weapon, name)
@@ -3213,6 +3437,80 @@ is_reviving_hook(revivee)
 
     self.the_revivee = undefined;
     return false;
+}
+
+
+can_revive_hook( revivee )
+{
+	if ( !isDefined( revivee.revivetrigger ) )
+	{
+		return 0;
+	}
+	if ( !isalive( self ) )
+	{
+		return 0;
+	}
+	if ( self player_is_in_laststand() )
+	{
+		return 0;
+	}
+	// if ( self.team != revivee.team )
+	// {
+	// 	return 0;
+	// }
+	if ( isDefined( self.is_zombie ) && self.is_zombie )
+	{
+		return 0;
+	}
+	if ( self has_powerup_weapon() )
+	{
+		return 0;
+	}
+	if ( isDefined( level.can_revive_use_depthinwater_test ) && level.can_revive_use_depthinwater_test && revivee depthinwater() > 10 )
+	{
+		return 1;
+	}
+	if ( isDefined( level.can_revive ) && !( [[ level.can_revive ]]( revivee ) ) )
+	{
+		return 0;
+	}
+	if ( isDefined( level.can_revive_game_module ) && !( [[ level.can_revive_game_module ]]( revivee ) ) )
+	{
+		return 0;
+	}
+	ignore_sight_checks = 0;
+	ignore_touch_checks = 0;
+	if ( isDefined( level.revive_trigger_should_ignore_sight_checks ) )
+	{
+		ignore_sight_checks = [[ level.revive_trigger_should_ignore_sight_checks ]]( self );
+		if ( ignore_sight_checks && isDefined( revivee.revivetrigger.beingrevived ) && revivee.revivetrigger.beingrevived == 1 )
+		{
+			ignore_touch_checks = 1;
+		}
+	}
+	// if ( !ignore_touch_checks )
+	// {
+	// 	if ( !self istouching( revivee.revivetrigger ) )
+	// 	{
+	// 		return 0;
+	// 	}
+	// }
+	if ( !ignore_sight_checks )
+	{
+		if ( !self is_facing( revivee ) )
+		{
+			return 0;
+		}
+		if ( !sighttracepassed( self.origin + vectorScale( ( 1, 1, 1 ), 50 ), revivee.origin + vectorScale( ( 1, 1, 1 ), 30 ), 0, undefined ) )
+		{
+			return 0;
+		}
+		if ( !bullettracepassed( self.origin + vectorScale( ( 1, 1, 1 ), 50 ), revivee.origin + vectorScale( ( 1, 1, 1 ), 30 ), 0, undefined ) )
+		{
+			return 0;
+		}
+	}
+	return 1;
 }
 
 monitor_reviving()
@@ -3255,7 +3553,7 @@ g_shield( shield )
     else
         self takeWeapon( shield );
 }
-
+// zombie_tazer_flourish
 g_melee( melee )
 {
     if(!self hasWeapon(melee))
@@ -3265,12 +3563,104 @@ g_melee( melee )
             if(self hasweapon(meleeweapon) && meleeweapon != melee)
                 self takeWeapon(meleeweapon);
         }
-        self g_weapon( melee );
+
+        if(!self.flourish)
+            self domeleeflourish( melee );
+    
+        // self g_weapon( melee );
     }
     else
     {
         self takeWeapon( melee );
     }
+}
+
+domeleeflourish( melee, givemelee )
+{
+    if(!isDefined(givemelee))
+        givemelee = true;
+        
+    self.flourish = true;
+    cw = self getCurrentWeapon();
+    if( melee == "tazer_knuckles_zm" || melee == "tazer_knuckles_upgraded_zm" )
+    {
+        self giveweapon( "zombie_tazer_flourish" );
+        self SwitchToWeaponImmediate( "zombie_tazer_flourish" );
+        if(!self hasperk("specialty_fastweaponswitch"))
+            wait 1.945;
+        else
+            wait 1.34;
+        if(!self ishost()) wait 0.55;
+        if(self ishost()) wait 0.55;
+        self takeWeapon( "zombie_tazer_flourish" );
+    }
+    if( issubstr( melee, "one_inch_punch" ) )
+    {
+        self giveweapon( "zombie_one_inch_punch_flourish" );
+        self SwitchToWeaponImmediate( "zombie_one_inch_punch_flourish" );
+        if(!self hasperk("specialty_fastweaponswitch"))
+            wait 1.8;
+        else
+            wait 1.34;
+        if(!self ishost()) wait 0.55;
+        if(self ishost()) wait 0.55;
+        self takeWeapon( "zombie_one_inch_punch_flourish" );
+    }
+    if( melee == "bowie_knife_zm" )
+    {
+        self giveweapon( "zombie_bowie_flourish" );
+        self SwitchToWeaponImmediate( "zombie_bowie_flourish" );
+        if(!self hasperk("specialty_fastweaponswitch"))
+            wait 2.12;
+        else
+            wait 1.22;
+        if(!self ishost()) wait 0.55;
+        if(self ishost()) wait 0.55;
+        self takeWeapon( "zombie_bowie_flourish" );
+    }
+    if( melee == "zombie_knuckle_crack" )
+    {
+        self giveweapon( "zombie_knuckle_crack" );
+        self SwitchToWeaponImmediate( "zombie_knuckle_crack" );
+        if(!self hasperk("specialty_fastweaponswitch"))
+            wait 2.12;
+        else
+            wait 1.22;
+        if(!self ishost()) wait 0.55;
+        if(self ishost()) wait 0.55;
+        self takeWeapon( "zombie_knuckle_crack" );
+    }
+    if( melee == "chalk_draw_zm" )
+    {
+        self giveweapon( "chalk_draw_zm" );
+        self SwitchToWeaponImmediate( "chalk_draw_zm" );
+        if(!self hasperk("specialty_fastweaponswitch"))
+            wait 2.12;
+        else
+            wait 1.22;
+        if(!self ishost()) wait 0.55;
+        if(self ishost()) wait 0.55;
+        self takeWeapon( "chalk_draw_zm" );
+    }
+    if( issubstr( melee, "tomahawk" ) )
+    {
+        self giveweapon( "zombie_tomahawk_flourish" );
+        self SwitchToWeaponImmediate( "zombie_tomahawk_flourish" );
+        if(!self hasperk("specialty_fastweaponswitch"))
+            wait 1.35;
+        else
+            wait 0.6;
+        if(!self ishost()) wait 0.55;
+        if(self ishost()) wait 0.55;
+        self takeWeapon( "zombie_tomahawk_flourish" );
+    }
+
+    if(givemelee)
+        self g_weapon( melee );
+
+    self switchToWeapon( cw );
+    self.flourish = undefined;
+    self notify( "flourish_done" );
 }
 
 g_timebomb()
@@ -3540,17 +3930,13 @@ fasthands()
 {
     if (!self.pers["fasthands"])
     {
+        self setperk("specialty_fastweaponswitch");
         self.pers["fasthands"] = true;
-
-        if (!self hasperk("specialty_fastweaponswitch"))
-            self setperk("specialty_fastweaponswitch");
     }
     else
     {
+        self unsetperk("specialty_fastweaponswitch");
         self.pers["fasthands"] = false;
-
-        if (self hasperk("specialty_fastweaponswitch"))
-            self unsetperk("specialty_fastweaponswitch");
     }
     self setPlayerCustomDvar("fasthands",self.pers["fasthands"]);
     self iPrintLn("Fast Hands " + convertstatus(self.pers["fasthands"]));
@@ -3566,6 +3952,19 @@ spawn_biplane_ride(player)
 {
     if (!isdefined(player) || !isplayer(player))
         return;
+
+    if(isdefined(player.is_riding_biplane) && player.is_riding_biplane)
+    {
+        player devp( "You are already riding a biplane!" );
+        return;
+    }
+
+    player.is_riding_biplane = true;
+
+    if(player.menu.is_open)
+    {
+        player close_menu();
+    }
 
     s_biplane_pos = getstruct("air_crystal_biplane_pos", "targetname");
     vh_biplane = spawnvehicle("veh_t6_dlc_zm_biplane", "air_crystal_biplane", "biplane_zm", s_biplane_pos.origin, s_biplane_pos.angles);
@@ -3599,13 +3998,27 @@ monitor_biplane_ride(player)
 
     for(;;)
     {
-        if (player jumpbuttonpressed())
+        if (player jumpbuttonpressed() && !player.menu.is_open)
         {
             player unlink();
+            player.is_riding_biplane = undefined;
             wait 1; // don't explode right away, but wait a second till player jumps out
             self ent_flag_set("biplane_ride_down");
         }
 
         wait 0.05;
     }
+}
+
+sendbacktospawn()
+{
+    spawnpointname = "initial_spawn_points";
+	spawnpoints = getstructarray( spawnpointname, "targetname" );
+	// spawnpoint = spawnpoints[ 0 ];
+	spawnpoint = maps\mp\gametypes_zm\_spawnlogic::getspawnpoint_random( spawnpoints );
+	if ( isDefined( spawnpoint ) )
+	{
+		self setOrigin( spawnpoint.origin );
+		self setPlayerAngles( spawnpoint.angles );
+	}
 }

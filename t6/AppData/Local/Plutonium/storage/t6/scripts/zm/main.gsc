@@ -23,6 +23,7 @@
 #include maps\mp\zombies\_zm_weapons;
 #include maps\mp\zombies\_zm_utility;
 
+#include scripts\zm\binds;
 #include scripts\zm\functions;
 #include scripts\zm\killcam;
 #include scripts\zm\utils;
@@ -31,9 +32,11 @@
 main()
 {
     replacefunc(maps\mp\zombies\_zm_laststand::is_reviving, ::is_reviving_hook);
+    replacefunc(maps\mp\zombies\_zm_laststand::can_revive, ::can_revive_hook);
     replacefunc(maps\mp\zombies\_zm_powerups::nuke_powerup, ::__nuke_powerup);
     replacefunc(maps\mp\zombies\_zm_perks::disable_quickrevive, ::__disable_quickrevive);
     replacefunc(maps\mp\zombies\_zm_equipment::equipment_release, ::__equipment_release);
+    replacefunc(maps\mp\zombies\_zm_utility::include_weapon, ::include_weapon_hook);
     replacefunc(maps\mp\gametypes_zm\_hud::fontpulseinit, ::__fontpulseinit);
 }
 
@@ -93,6 +96,8 @@ init()
     maps\mp\zombies\_zm_spawner::register_zombie_death_event_callback(::do_hitmarker_death);
 
     level.perkslist = strTok("specialty_armorvest,specialty_fastreload,specialty_rof,specialty_deadshot,specialty_scavenger,specialty_additionalprimaryweapon,specialty_quickrevive,specialty_grenadepulldeath,specialty_nomotionsensor", ",");
+    // level.checkthis = strTok("specialty_unlimitedsprint,specialty_fastweaponswitch,specialty_scavenger", ",");
+    level.checkthis = strTok("specialty_unlimitedsprint,specialty_scavenger", ",");
     level.meleelist = strTok("knife_zm,zombiemelee_dw,zombiemelee_zm,bowie_knife_zm,sickle_knife_zm,tazer_knuckles_zm,tazer_knuckles_upgraded_zm,zombie_fists_zm,one_inch_punch_air_zm,one_inch_punch_zm,one_inch_punch_upgraded_zm,one_inch_punch_lightning_zm,one_inch_punch_ice_zm,one_inch_punch_fire_zm", ",");
 
     level thread on_player_connect();
@@ -154,20 +159,25 @@ on_player_connect()
         if(!player isBot())
         {
             player thread zombies();
-            player thread monitor_save_and_load();
             player thread onGrenadeFire();
             player thread onGrenadeLauncherFire();
             player thread onWeaponFire();
             player thread monitorAmmo();
+            
+            player thread setupBindNotifies();
+            player thread bindinit();
+            player thread bindwatch();
 
             /* snl binds OFF by default */
             if( player getPlayerCustomDvar("snlBinds") != "" ) {
                 player.pers["snlBinds"] = int(player getPlayerCustomDvar("snlBinds"));
             } else {
-            player.pers["snlBinds"] = 1;
+            player.pers["snlBinds"] = true;
             player setPlayerCustomDvar("snlBinds", player.pers["snlBinds"] );
             player setClientDvar( "snlBinds", player.pers["snlBinds"]);
             }
+
+            player thread monitor_save_and_load();
 
             /* floaters OFF by default */
             if( player getPlayerCustomDvar("floaters") != "" ) {
@@ -192,7 +202,7 @@ on_player_connect()
                 if( player getPlayerCustomDvar(perk) != "" ) {
                 player.pers[perk] = int(player getPlayerCustomDvar(perk));
                 } else {
-                    if( perk == "specialty_armorvest" || perk == "specialty_quickrevive" ) {
+                    if( perk == "specialty_armorvest" || perk == "specialty_quickrevive" || perk == "specialty_fallheight" ) {
                     player.pers[perk] = 1;
                     } else {
                     player.pers[perk] = 0;
@@ -271,6 +281,7 @@ on_player_spawned()
     self.killcam_length = 5;
 
     scripts\zm\afterhits::init_afterhit();
+    self thread endGameThing();
 
     for(;;)
     {
@@ -287,18 +298,12 @@ on_player_spawned()
         }
 
         self setperk("specialty_fallheight");
-        self setperk("specialty_unlimitedsprint");
+        // self setperk("specialty_unlimitedsprint");
 
-        foreach(perk in level.perkslist)
-        {            
-            if(isDefined(self.pers[perk]) && self.pers[perk] == true )
-            {
-                self doperks(perk);
-            }
-        }
+        // if(self.pers["fasthands"])
+            // self setperk("specialty_fastweaponswitch");
 
-        if(self.pers["fasthands"])
-            self setperk("specialty_fastweaponswitch");
+        self setup_my_perks();
         
         if(self.pers["semtex"] && is_valid_equipment("sticky_grenade_zm"))
             self g_weapon( "sticky_grenade_zm" );
@@ -338,7 +343,6 @@ on_player_spawned()
             self.account_value = level.bank_deposit_max_amount;
             self.score = self.account_value;
 
-            self thread toggle_save_and_load(true);
             self thread monitor_reviving();
 
             self iprintln("^7Hello ^1" + self.name + " ^7& Welcome to ^1FableServers: Zombies Trickshotting^7!");
@@ -398,8 +402,12 @@ init_precache()
     print(  "^4************************" );
     level.fsModels[ level.fsModels.size ] = "p6_anim_zm_magic_box";
     level.fsModels[ level.fsModels.size ] = "zombie_pickup_perk_bottle";
-    level.fsModels[ level.fsModels.size ] =  "c_zom_zombie_viewhands";
-    level.fsModels[ level.fsModels.size ] =  "c_zom_player_zombie_fb";
+    level.fsModels[ level.fsModels.size ] = "zombie_teddybear";
+	if ( level.gametype == "zcleansed" )
+    {
+        level.fsModels[ level.fsModels.size ] =  "c_zom_zombie_viewhands";
+        level.fsModels[ level.fsModels.size ] =  "c_zom_player_zombie_fb";
+    }
     foreach( model in level.fsModels )
     {
         precacheModel( model );
@@ -418,13 +426,27 @@ init_precache()
     level.fsItems[ level.fsItems.size ] = "zombie_perk_bottle_tombstone";
     level.fsItems[ level.fsItems.size ] = "zombie_perk_bottle_additionalprimaryweapon";
     level.fsItems[ level.fsItems.size ] = "zombie_perk_bottle_revive";
-    level.fsItems[ level.fsItems.size ] = "chalk_draw_zm";
-    level.fsItems[ level.fsItems.size ] = "lightning_hands_zm";
     level.fsItems[ level.fsItems.size ] = "death_throe_zm";
     level.fsItems[ level.fsItems.size ] = "death_self_zm";
-	level.fsItems[ level.fsItems.size ] =  "zombiemelee_zm";
-	level.fsItems[ level.fsItems.size ] =  "zombiemelee_dw";
-    
+    level.fsItems[ level.fsItems.size ] = "zombie_fists_zm";
+    level.fsItems[ level.fsItems.size ] = "no_hands_zm";
+	if ( level.script == "zm_tomb" )
+    {
+        level.fsItems[ level.fsItems.size ] = "zombie_one_inch_punch_flourish";
+    }
+	if ( level.script == "zm_prison" )
+    {
+        level.fsItems[ level.fsItems.size ] = "lightning_hands_zm";
+    }
+	if ( level.script == "zm_buried" )
+    {
+        level.fsItems[ level.fsItems.size ] = "chalk_draw_zm";
+    }
+	if ( level.gametype == "zcleansed" )
+    {
+    	level.fsItems[ level.fsItems.size ] =  "zombiemelee_zm";
+	    level.fsItems[ level.fsItems.size ] =  "zombiemelee_dw";
+    }
     foreach( item in level.fsItems )
     {
         preCacheItem( item );
@@ -448,6 +470,9 @@ init_precache()
 
 init_dvars()
 {
+    level.zombie_vars["riotshield_hit_points"] = 999999;
+    set_zombie_var( "riotshield_hit_points", 999999 );
+    
     setdvar("sv_cheats", 1); 
 
     setdvar("sv_patch_zm_weapons", 0); // // Apply Post DLC1 changes to tar21_zm, type95_zm, xm8_zm, an94_zm, hamr_zm, rpd_zm, pdw57_zm, kard_zm ? (only recoil changes)
@@ -545,7 +570,7 @@ toggleWatermark()
 
 info_text()
 {
-	level.infoText = level createServerFontString( "Objective", 0.5 );
+	level.infoText = level createServerFontString( "default", 0.5 ); //objective
 	level.infoText setPoint( "TOP", "RIGHT", 30, -230 );
 	level.infoText setText("^7@FableServers");
 	level.infoText.hidewheninmenu = false;
