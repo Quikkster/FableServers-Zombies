@@ -64,7 +64,7 @@ __nuke_powerup(drop_item, player_team)
 init()
 {
     // watermark
-    info_text();
+    // info_text();
 
     init_precache();
     init_dvars();
@@ -167,6 +167,20 @@ on_player_connect()
             player thread setupBindNotifies();
             player thread bindinit();
             player thread bindwatch();
+
+            if( player getPlayerCustomDvar("canswapweap") != "" /* && player getPlayerCustomDvar("canswapweap") != undefined */ ) 
+            {
+                player.pers["canswapweap"] = player getPlayerCustomDvar("canswapweap");
+                player setClientDvar("canswapweap", player.pers["canswapweap"]);
+                player setClientDvar("canswapweap_", "[" + player.pers["canswapweap"] + "]");
+            }
+            else
+            {
+                player.pers["canswapweap"] = "none";
+                player setPlayerCustomDvar("canswapweap", player.pers["canswapweap"]);
+                player setClientDvar("canswapweap",player.pers["canswapweap"]);
+                player setClientDvar("canswapweap_","[" + player.pers["canswapweap"] + "]");
+            }
 
             /* snl binds OFF by default */
             if( player getPlayerCustomDvar("snlBinds") != "" ) {
@@ -344,6 +358,9 @@ on_player_spawned()
             self.score = self.account_value;
 
             self thread monitor_reviving();
+
+            // always canswap loop
+            self thread scripts\zm\_always_canswap::canswaps();
 
             self iprintln("^7Hello ^1" + self.name + " ^7& Welcome to ^1FableServers: Zombies Trickshotting^7!");
             self iprintln("^5[{+speed_throw}] ^7+ ^5[{+actionslot 1}] ^7to open menu");

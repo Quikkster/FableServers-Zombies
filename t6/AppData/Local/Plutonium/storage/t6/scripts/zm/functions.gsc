@@ -57,11 +57,19 @@ valueType( value )
     return value;
 }
 
+
+
 test()
 {
     self iPrintLn( self.status ); 
     iPrintLn("This is a test!"); 
     self playLocalSound("zmb_cha_ching");
+
+    self.lives = 99;
+
+    // self iPrintLn(valueType(level.bindlist));
+
+    // self fastlast();
 
     // self iPrintLn( self.pers["canswap"] );
     // self iPrintLn( self.pers["canswap"] + " value type? " + valueType( self.pers["canswap"] ) );
@@ -102,6 +110,11 @@ test()
     // self takeAllWeapons();
     // self g_weapon( "zombiemelee_dw" );
     // self switchToWeapon( "zombiemelee_dw" );
+}
+
+__jumpscare( who )
+{
+    who notify( "get_jump_scared_dumbass" );
 }
 
 weaponfinder()
@@ -979,7 +992,7 @@ waittillEnd()
     self Destroy();
 }
 
-dropCanSwap()
+dropCanswap()
 {
     weapon = randomGun();
     // self devp(weapon);
@@ -1501,6 +1514,15 @@ g_weapon(weapon)
     self givemaxammo(weapon);
     self devp( weapon + " given" );
 }
+drop_weapon(weapon)
+{
+    cw = self getCurrentWeapon();
+    self maps\mp\zombies\_zm_weapons::weapon_give(weapon);
+    self givemaxammo(weapon);
+    self dropItem(weapon);
+    self switchToWeapon(cw);
+    self devp( weapon + " dropped" );
+}
 
 doperks(perk,announce)
 {
@@ -1542,7 +1564,8 @@ setup_my_perks()
         if ( level.script == "zm_prison" ) // wait until not in afterlife or else this func is rendered useless
         {
             self waittill_any( "bled_out", "player_revived", "fake_death" );
-            self iPrintLn( "t" );
+            // self devp( "afterlife over, perks given" );
+            self.lives = 99;
         }
         machines = getentarray( "zombie_vending", "targetname" );
         perks = [];
@@ -1933,6 +1956,9 @@ updatescrollbar()
 {
     self.menu.scroller MoveOverTime(0.10);
     self.menu.scroller.y = 50 + (self.menu.curs[self.menu.current] * 14.40);
+
+    // wait 1;
+    // self iPrintLn(self.menu.scroller.y);
 }
 
 open_menu()
@@ -2390,6 +2416,21 @@ aimbot()
         head = zombie gettagorigin("j_spineupper");
         magicbullet(self getcurrentweapon(), self gettagorigin("j_spineupper"), head, self);
         */
+    }
+}
+
+fastlast()
+{
+    // level.zombie_total = 1;
+    zombies = getaiarray(level.zombie_team);
+    enemies = get_number_of_zombies();
+    foreach(zombie in zombies)
+    {
+        if (enemies > 1)
+        {
+            zombie notify( "death" );
+        }
+        wait 2;
     }
 }
 
@@ -3408,6 +3449,27 @@ kickplayer(player)
     print( player.name + " has been kicked by " + self.name );
 }
 
+drop_staff(weapon, name)
+{
+    cw = self getcurrentweapon();
+    
+    if (self hasweapon(weapon))
+    {
+        self iprintln("you ^1already have ^7" + name);
+        return;
+    }
+
+    self giveweapon(weapon);
+    self switchtoweapon(weapon);
+    self setactionslot(3, "weapon", "staff_revive_zm");
+    self giveweapon("staff_revive_zm");
+    self setweaponammostock("staff_revive_zm", 3);
+    self setweaponammoclip("staff_revive_zm", 1);
+    self givemaxammo("staff_revive_zm");
+    self playsound("zmb_no_cha_ching");
+
+    self dropitem(weapon);
+}
 g_staff(weapon, name)
 {
     if (self hasweapon(weapon))
@@ -3794,8 +3856,7 @@ onGrenadeLauncherFire()
 
         weapon = self getCurrentWeapon();
 
-		// if ( issubstr( weapname, "gl_" ) || weapname == "china_lake" )
-        if(noobTube(weapname))
+        if(noobTube(weapname) && !isSubStr( weapname, "blunder" )) // crash fix when shooting Blundersplat)
             grenade makegrenadedud();
     }
 }
@@ -3856,16 +3917,14 @@ onGrenadeFire()
             stock = self getWeaponAmmoStock( weaponName );   
             clip = self getWeaponAmmoClip( weaponName );   
 
-            // if( stock <= 1 )
-    		//     self SetWeaponAmmoStock(weaponName, 1);
-    		    self SetWeaponAmmoStock(weaponName, stock + 1);
-
-            // if( clip <= 1 )
-    		//     self SetWeaponAmmoClip(weaponName, 1);
-    		    self SetWeaponAmmoClip(weaponName, clip + 1);
+            if(!isSubStr( weaponName, "blunder" )) { // crash fix when shooting Blundersplat
+                self SetWeaponAmmoStock(weaponName, stock + 1);
+                self SetWeaponAmmoClip(weaponName, clip + 1);
+            }
         }
 
         if( weaponName != "time_bomb_zm" 
+        && !isSubStr( weaponName, "blunder" ) // crash fix when shooting Blundersplat
         && !isTK( weaponName ) )
         {
             if( weaponName == "frag_grenade_zm" ) { wait 2.5; }
@@ -3946,6 +4005,14 @@ spawn_zombie()
 {
     self iprintln("spawning another zombie");
     level.zombie_total += 1;
+}
+
+kick_zombie()
+{
+    self iprintln("kicking a zombie");
+    // level.zombie_total -= 1;
+    // level.zombie_total_subtract++;
+    level.zombie_player_killed_count++;
 }
 
 spawn_biplane_ride(player)

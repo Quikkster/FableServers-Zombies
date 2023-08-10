@@ -54,6 +54,86 @@ getClient()
     return result;
 }
 
+firstLetterToUpper( word )
+{
+	newWord = _letterToUpper( word[0] );
+	for(i=1;i<word.size;i++)
+		newWord += word[i];
+	return newWord;
+}
+
+_toUpper( string )
+{
+	output = "";
+	
+	for ( i = 0; i < string.size; i++ )
+	{
+		if( string[i] == toLower(string[i]) )
+			output += _letterToUpper( string[i] );
+		else
+			output += string[i];
+	}
+	return output;
+}
+
+_letterToUpper( letter )
+{
+	if		(letter == "a") letter = "A";
+	else if	(letter == "b") letter = "B";
+	else if	(letter == "c") letter = "C";
+	else if	(letter == "d") letter = "D";
+	else if	(letter == "e") letter = "E";
+	else if	(letter == "f") letter = "F";
+	else if	(letter == "g") letter = "G";
+	else if	(letter == "h") letter = "H";
+	else if	(letter == "i") letter = "I";
+	else if	(letter == "j") letter = "J";
+	else if	(letter == "k") letter = "K";
+	else if	(letter == "l") letter = "L";
+	else if	(letter == "m") letter = "M";
+	else if	(letter == "n") letter = "N";
+	else if	(letter == "o") letter = "O";
+	else if	(letter == "p") letter = "P";
+	else if	(letter == "q") letter = "Q";
+	else if	(letter == "r") letter = "R";
+	else if	(letter == "s") letter = "S";
+	else if	(letter == "t") letter = "T";
+	else if	(letter == "u") letter = "U";
+	else if	(letter == "v") letter = "V";
+	else if	(letter == "w") letter = "W";
+	else if	(letter == "x") letter = "X";
+	else if	(letter == "y") letter = "Y";
+	else if	(letter == "z") letter = "Z";
+	return letter;
+}
+
+
+callFunc(func, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
+{
+	if (isDefined(a10))
+		return self [[func]](a1, a2, a3, a4, a5, a6, a7, a8, a9, a10);
+	if (isDefined(a9))
+		return self [[func]](a1, a2, a3, a4, a5, a6, a7, a8, a9);
+	if (isDefined(a8))
+		return self [[func]](a1, a2, a3, a4, a5, a6, a7, a8);
+	if (isDefined(a7))
+		return self [[func]](a1, a2, a3, a4, a5, a6, a7);
+	if (isDefined(a6))
+		return self [[func]](a1, a2, a3, a4, a5, a6);
+	if (isDefined(a5))
+		return self [[func]](a1, a2, a3, a4, a5);
+	if (isDefined(a4))
+		return self [[func]](a1, a2, a3, a4);
+	if (isDefined(a3))
+		return self [[func]](a1, a2, a3);
+	if (isDefined(a2))
+		return self [[func]](a1, a2);
+	if (isDefined(a1))
+		return self [[func]](a1);
+
+	return self [[func]]();
+}
+
 fastrestart()
 {
     map_restart( 0 );
@@ -146,8 +226,22 @@ definepers(var,value,strtoint)
     //     self setPlayerCustomDvar(var, self.pers[var] );
     // }
 
-    self devp( var + " set to " + self.pers[var]);
-    print( var + " set to " + self.pers[var]);
+    // self devp( var + " set to " + self.pers[var]);
+    // print( var + " set to " + self.pers[var]);
+    
+    // self devp( convertbindtoannounce(var) + " set to " + self.pers[var]);
+    // print( convertbindtoannounce(var) + " set to " + self.pers[var]);
+
+    if(self.pers[var] != 0)
+    {
+        self devp(convertbindtoannounce(var) + " set to^5[{+actionslot "+ self.pers[var]+"}]");
+        print(convertbindtoannounce(var) + " set to ^5[{+actionslot "+ self.pers[var]+"}]");
+    }
+    else
+    {
+        self devp(convertbindtoannounce(var) + " ^1Disabled");
+        print(convertbindtoannounce(var) + " ^1Disabled");
+    }
 }
 
 
@@ -160,8 +254,22 @@ forcedefinepers(var,value,strtoint)
     self setPlayerCustomDvar(var, self.pers[var] );
     self setClientDvar( var, self.pers[var]);
 
-    self devp( var + " set to " + self.pers[var]);
-    print( var + " set to " + self.pers[var]);
+    // self devp( var + " set to " + self.pers[var]);
+    // print( var + " set to " + self.pers[var]);
+    
+    // self devp( convertbindtoannounce(var) + " set to " + self.pers[var]);
+    // print( convertbindtoannounce(var) + " set to " + self.pers[var]);
+
+    if(self.pers[var] != 0)
+    {
+        self devp(convertbindtoannounce(var) + " set to^5[{+actionslot "+ self.pers[var]+"}]");
+        print(convertbindtoannounce(var) + " set to ^5[{+actionslot "+ self.pers[var]+"}]");
+    }
+    else
+    {
+        self devp(convertbindtoannounce(var) + " ^1Disabled");
+        print(convertbindtoannounce(var) + " ^1Disabled");
+    }
 }
 
 booltotext(bool)

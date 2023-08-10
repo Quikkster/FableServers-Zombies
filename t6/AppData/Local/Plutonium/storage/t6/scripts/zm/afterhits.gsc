@@ -89,6 +89,7 @@ init_afterhit()
     self.afterhit[15]["weapon"] = randomintrange(0, level.canswapWeapons.size);
     self.afterhit[16]["weapon"] = "screecher_arms_zm";
     self.afterhit[17]["weapon"] = "syrette_afterlife_zm";
+    self.afterhit[18]["weapon"] = "minigun_alcatraz_zm";
 }
 
 can_toggle()

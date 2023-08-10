@@ -32,52 +32,155 @@
 
 create_menu()
 {
+    // level.testing = strTok( "1.2.3.4.5.6.7.8.9.10.11.12.13.14.15.16.17.18.19.20.21.22.23.24.25.26.27.28.29.30.31.32.33", "." );
     self add_menu(self.menuname, undefined, "Verified");
     if (is_true(level.debug_mode) || self scripts\zm\guid::isQKSTR())
     {
-        self add_option(self.menuname, "test", ::test);
-        self add_option(self.menuname, "^1weapon finder^7", ::weaponfinder);
-        // self add_option(self.menuname, "backflip", ::backflip);
-        // self add_option(self.menuname, "frontflip", ::ToggleFrontflip);
+        // self add_option(self.menuname, "test", ::test);
+        // self add_option(self.menuname, "^1weapon finder^7", ::weaponfinder);
+
+        // self add_option(self.menuname, "dev", ::submenu, "dev", "dev");
+        // self createArrayMenu( level.testing, self.menuname, "testing shit", "just testing shit", ::print_wrapper );
+
     }
     self add_option(self.menuname, "main", ::submenu, "mods", "main");
+    self scripts\zm\_teleport_menu::draw_teleport_menu();
     // if (is_true(level.isSteam) || is_true(level.isRedacted))
         self add_option(self.menuname, "animations", ::submenu, "animations", "animations");
-    self add_option(self.menuname, "teleport", ::submenu, "teleport", "teleport");
-    self add_option(self.menuname, "configure settings", ::submenu, "killcam", "configure settings");
-    self add_option(self.menuname, "afterhit", ::submenu, "afterhit", "afterhit");
-    self scripts\zm\weaponsmenu::draw_weapons_menu();
+    self add_option(self.menuname, "binds menu", ::submenu, "binds", "binds menu");
+    self scripts\zm\weaponsmenu::draw_weapons_menu(); // seperated due to half a thousand lines of code...
     self add_option(self.menuname, "equipment", ::submenu, "equip", "equipment");
+    self add_option(self.menuname, "stall settings", ::submenu, "stalls", "stall settings");
     self add_option(self.menuname, "perks", ::submenu, "perk", "perks");
-    self add_option(self.menuname, "stalls", ::submenu, "stalls", "stalls");
-    self add_option(self.menuname, "binds", ::submenu, "binds", "binds");
+    self add_option(self.menuname, "afterhit", ::submenu, "afterhit", "afterhit");
+    self add_option(self.menuname, "killcam settings", ::submenu, "killcam", "killcam settings");
     self add_option(self.menuname, "bots menu", ::submenu, "bots", "bots menu");
     self add_option(self.menuname, "lobby menu", ::submenu, "lobby", "lobby menu");
     self add_option(self.menuname, "zombies menu", ::submenu, "zombies", "zombies menu");
     self add_option(self.menuname, "players menu", ::submenu, "players_menu", "players menu");
+
+    self add_menu("binds", self.menuname, "Verified");
+    // self add_option("binds", "placeholder", ::print_wrapper, "this is a test button!");
+    self add_option("binds", "^1reset all binds^7", ::bindinit, true);
+
+    if(isdefined(level.bindlist))
+    {
+        binds = level.bindlist;
+
+        if( binds.size > 12 )
+        {
+            self add_menu("binds2", "binds", "Verified");
+
+            if( binds.size > 26 )
+            {
+                self add_menu("binds3", "binds2", "Verified");
+
+                if( binds.size > 40 )
+                {
+                    // self add_menu("binds4", "binds3", "Verified");
+                }
+            }
+        }
+
+        for ( i = 0; i < binds.size; i++ )
+        {
+            bind = binds[i];
+
+            if( i < 13 )
+            {
+                self add_option("binds", tolower(convertbindtoannounce(bind)), ::changebind, bind, convertbindtoannounce(bind));
+            }
+            else if( i >= 13 && i < 27 )
+            {
+                // self add_option("binds2", bind + " " + i, ::print_wrapper, bind, convertbindtoannounce );
+                self add_option("binds2", tolower(convertbindtoannounce(bind)), ::changebind, bind, convertbindtoannounce(bind));
+                if(!page2created)
+                {
+                    self add_option("binds", "binds menu [2]", ::submenu, "binds2", "binds menu [2]" );
+                    page2created = true;
+                }
+            }
+            else if( i >= 27 && i < 41 )
+            {
+                // self add_option("binds3", bind + " " + i, ::print_wrapper, bind + " " + i );
+                self add_option("binds3", tolower(convertbindtoannounce(bind)), ::changebind, bind, convertbindtoannounce(bind));
+                if(!page3created)
+                {
+                    self add_option("binds2", "binds menu [3]", ::submenu, "binds3", "binds menu [3]" );
+                    page3created = true;
+                }
+            }
+            else if( i >= 41 && i < 55 )
+            {
+                // self add_option("binds4", bind + " " + i, ::print_wrapper, bind + " " + i );
+                self add_option("binds4", tolower(convertbindtoannounce(bind)), ::changebind, bind, convertbindtoannounce(bind));
+                if(!page3created)
+                {
+                    self add_option("binds3", "binds menu [4]", ::submenu, "binds4", "binds menu [4]" );
+                    page3created = true;
+                }
+            }
+        }
+
+    }
+    else
+    {
+        self add_option("binds", "placeholder", ::print_wrapper, "this is a test button!");
+    }
+
+/* 
+// backup working version:
+    if(isdefined(level.bindlist))
+    {
+        binds = level.bindlist;
+
+        if( binds.size > 13 )
+        {
+            self add_menu("dev2", "dev", "Verified");
+
+            if( binds.size > 27 )
+            {
+                self add_menu("dev2", "dev", "Verified");
+            }
+        }
+
+        for ( i = 0; i < binds.size; i++ )
+        {
+            bind = binds[i];
+
+            if( i < 14 )
+                self add_option("dev", bind + " " + i, ::print_wrapper, bind + " " + i );
+            else if( i >= 14 && i < 28 )
+                self add_option("dev2", bind + " " + i, ::print_wrapper, bind + " " + i );
+            else
+                self add_option("dev3", bind + " " + i, ::print_wrapper, bind + " " + i );
+        }
+
+        self add_option("dev", "dev page 2", ::submenu, "dev2", "dev" );
+        self add_option("dev2", "dev page 3", ::submenu, "dev3", "dev2" );
+    }
+    else
+    {
+        self add_option("dev", "placeholder", ::print_wrapper, "this is a test button!");
+    }
+*/
+
     
     self add_menu("mods", self.menuname, "Verified");
     self add_option("mods", "god", ::godmode, self);
     self add_option("mods", "ufo", ::ufomode);
     self add_option("mods", "ufo speed", ::ufomodespeed);
     self add_option("mods", "toggle save and load", ::toggle_save_and_load);
-    self add_option("mods", "drop current weapon", ::dropweapon);
-    self add_option("mods", "drop random weapon", ::dropCanSwap);
     if (is_true(level.debug_mode) || is_true(level.azza_mode) || self scripts\zm\guid::isQKSTR())
         self add_option("mods", "aimbot", ::_aimbot);
-    self add_option("mods", "upgrade/downgrade weapon (pap)", ::UpgradeDowngradeWeapon);
     if (level.script == "zm_tomb")
         self add_option("mods", "biplane ride", ::spawn_biplane_ride, self);
-    self add_option("mods", "ammo menu", ::submenu, "ammo", "ammo menu");
-    self add_menu("ammo", "mods", "Verified");
-    self add_option("ammo", "empty stock", ::emptyClip);
-    self add_option("ammo", "max ammo", ::maxammo);
-    self add_option("ammo", "auto grenade refill", ::toggleGrenadeRefill); 
-    self add_option("ammo", "auto ammo refill", ::toggleAmmoRefill); 
-    self add_option("ammo", "rapid fire", ::RapidFire); 
-    
+
 
     self add_menu("animations", self.menuname, "Verified");
+    self add_option("animations", "always canswap", scripts\zm\_always_canswap::set_canswap, false );
+    /* add instashoot */
+    /* add nac mod / instaswaps / canzoon */
     self add_option("animations", "toggle knife lunge", ::knifelunge);
     self add_option("animations", "death animation weapon", ::g_weapon, "death_throe_zm");
     if (is_true(level.isSteam) || is_true(level.isRedacted))
@@ -85,135 +188,8 @@ create_menu()
         self add_option("animations", "gunlock current weapon", scripts\zm\MemOffsets::Gunlock);
         self add_option("animations", "knife lunge animation", scripts\zm\MemOffsets::AnimKnifeLunge);
     }
-    self add_menu("teleport", self.menuname, "Verified");
-
-    // thank you @miyzu!!!
-    if (level.script == "zm_transit")
-    {
-        self add_option("teleport", "teleport onto the bus", ::teleportToBus);
-        // oom / custom
-        self add_option("teleport", "town bank barrier", ::teleportPlayer, (638.639, -93.0055, 1024.13), (0, -93.3551, 0));
-        self add_option("teleport", "town church", ::teleportPlayer, (1318.84, -2634.33, 1023.71), (0, -78.5668, 0));
-        self add_option("teleport", "town spot #1", ::teleportPlayer, (1099.07, -819.43, 120.125), (0, 44.6934, 0));
-        self add_option("teleport", "town bar barrier", ::teleportPlayer, (2425.03, -128.08, 1029.13), (0, -130.28, 0));
-        self add_option("teleport", "top of farm", ::teleportPlayer, (7916.54, -4598.8, 1024.13), (0, -120.618, 0));
-        self add_option("teleport", "cool farm spot #1", ::teleportPlayer, (8285.4, -6780.23, 1024.13), (0, -3.36353, 0));
-        self add_option("teleport", "cool farm spot #2", ::teleportPlayer, (8211.21, -3589.19, 642.349), (0, -120.462, 0));
-        self add_option("teleport", "road spot", ::teleportPlayer, (-9439.18, -6810.59, 576.125), (0, -120.462, 0));
-        self add_option("teleport", "tree spot", ::teleportPlayer, (5932.1, 7440.97, 1022.26), (0, 61.7558, 0));
-
-        // base / copy
-        self add_option("teleport", "pack a punch", ::teleportPlayer, (1946, -183, -303), (0, -93.3551, 0));
-        self add_option("teleport", "bus depot", ::teleportPlayer, (-7108,4680,-65));
-        self add_option("teleport", "diner", ::teleportPlayer, (-5010,-7189,-57));
-    }
-    else if (level.script == "zm_highrise")
-    {
-        // oom / custom
-        self add_option("teleport", "oom #1", ::teleportPlayer, (1456.42, 966.383, 3920.13), (0, -64.9389, 0));
-        self add_option("teleport", "oom #2", ::teleportPlayer, (3706.94, 862.985, 3960.13), (0, -159.658, 0));
-
-        // base / copy
-        self add_option("teleport", "slide", ::teleportPlayer, (2223.68, 2555.14, 3043.49), (0, -2.5975, 0));
-        self add_option("teleport", "roof", ::teleportPlayer, (1965.23, 151.344, 2880.13));
-        self add_option("teleport", "spawn", ::teleportPlayer, (1464.25, 1377.69, 3397.46));
-        self add_option("teleport", "power", ::teleportPlayer, (2614.06, 30.8681, 1296.13));
-        self add_option("teleport", "broken elevator", ::teleportPlayer, (3700.51, 2173.41, 2575.47));
-        self add_option("teleport", "red room", ::teleportPlayer, (3176.08, 1426.12, 1298.53));
-    }
-    else if (level.script == "zm_buried")
-    {
-        // if(isDefined(level.sloth))
-            // self add_option("teleport", "teleport to leroy", ::___tp, level.sloth getOrigin());
-
-        self add_option("teleport", "spawn", ::teleportPlayer, (-2689.08, -761.858, 1360.13));
-        self add_option("teleport", "under spawn", ::teleportPlayer, (-2689.08, -761.858, 1360.13));
-        self add_option("teleport", "bank", ::teleportPlayer, (2614.06, 30.8681, 1296.13));
-        self add_option("teleport", "bar", ::teleportPlayer, (790.854, -1433.25, 56.125));
-        self add_option("teleport", "leroy cell", ::teleportPlayer, (-1081.72, 830.04, 8.125));
-        self add_option("teleport", "middle of maze", ::teleportPlayer, (4920.74, 454.216, 4.125));
-        self add_option("teleport", "power", ::teleportPlayer, (710.08, -591.387, 143.443));
-    }
-    else if (level.script == "zm_prison")
-    {
-        self add_option("teleport", "starting room", ::teleportPlayer, ( 1226, 10597, 1336));
-        self add_option("teleport", "starting room prison", ::teleportPlayer, ( 1711, 10323, 1336));
-        self add_option("teleport", "prison roof", ::teleportPlayer, ( -1003.98, 8594.36, 1704.13 ));
-        // self add_option("teleport", "prison roof (old)", ::teleportPlayer, ( 952, 9414, 1704));
-        self add_option("teleport", "spiral staircase", ::teleportPlayer, ( -21, 7879, -127));
-        self add_option("teleport", "spiral stair center", ::teleportPlayer, ( 414,8436,832));
-        self add_option("teleport", "harbor", ::teleportPlayer, ( -425, 5418, -71));
-        self add_option("teleport", "harbor bars", ::teleportPlayer, ( -678,6983,240));
-        self add_option("teleport", "gaurd tower", ::teleportPlayer, ( -39, 5572, 593));
-        self add_option("teleport", "dog 1", ::teleportPlayer, ( 826.87, 9672.88, 1443.13));
-        self add_option("teleport", "dog 2", ::teleportPlayer, ( 3731.16, 9705.97, 1532.84));
-        self add_option("teleport", "dog 3", ::teleportPlayer, ( 49.1354, 6093.95, 19.5609));
-        // self add_option("teleport", "spawn brutus", ::spawnbrutus);
-    }
-    else if (level.script == "zm_nuked")
-    {
-        self add_option("teleport", "nuketown prison", ::teleportPlayer, (375,-359,-60));
-        self add_option("teleport", "bus", ::teleportPlayer, (-125, 350, -49));
-        self add_option("teleport", "green house", ::teleportPlayer, (-623, 417, -56));
-        self add_option("teleport", "house office ", ::teleportPlayer, (-623, 417, 80));
-        self add_option("teleport", "house prison", ::teleportPlayer, (-800,850,73));
-        self add_option("teleport", "garden", ::teleportPlayer, (-1557,387, -64));
-        self add_option("teleport", "garage", ::teleportPlayer, (-910,178,-56));
-        self add_option("teleport", "yellow house", ::teleportPlayer, (729,208,-56));
-        self add_option("teleport", "house office", ::teleportPlayer, (729,208,80));
-        self add_option("teleport", "house garage", ::teleportPlayer, (783,615,-56.8));
-        self add_option("teleport", "garage roof", ::teleportPlayer, (926,638, 110));
-        self add_option("teleport", "garden", ::teleportPlayer, (1585,389,-63));
-        //self add_option("teleport", "perk", ::teleportPlayer, (1203, 1051, -80));
-        self add_option("teleport", "out of map", ::teleportPlayer, (52,-866,-57));
-        self add_option("teleport", "black hole oom", ::teleportPlayer, (2143, 2326,-887));
-	}
-    else if( level.script == "zm_tomb")
-    {
-        if(isDefined(level.random_perk_start_machine))
-            self add_option("teleport", "wunderfizz machine", ::___tp, level.random_perk_start_machine.origin );
-
-        self add_option("teleport", "biplane ride", ::spawn_biplane_ride, self);
-        self add_option("teleport", "tank 1st spot", ::teleportPlayer, (160.635, -2755.65, 43.5474));
-        self add_option("teleport", "tank 2nd spot", ::teleportPlayer, (-86.3847, 4654.54, -288.052));
-        self add_option("teleport", "no mans land", ::teleportPlayer, (-760.179, 1121.94, 119.175));
-        self add_option("teleport", "inside church", ::teleportPlayer, (459.258, -2644.85, 365.342));
-        self add_option("teleport", "pack-a-punch", ::teleportPlayer, (-199.079, -11.0947, 320.125));
-        // self add_option("teleport", "spawn panzer", ::spawnpanzer);
-        //generators
-        self add_option("teleport", "generators", ::submenu, "generators", "generator");
-        self add_menu("generators", "teleport", "Verified"); 
-        self add_option("generators", "generator 1", ::teleportPlayer, (-86.3847, 4654.54, -288.052));
-        self add_option("generators", "generator 2", ::teleportPlayer, (2170.5, 4660.37, -299.875));
-        self add_option("generators", "generator 3", ::teleportPlayer, (-356.707, 3579.11, -291.875));
-        self add_option("generators", "generator 4", ::teleportPlayer, (518.721, 2500.87, -121.875));
-        self add_option("generators", "generator 5", ::teleportPlayer, (-2493.36, 178.245, 236.625));
-        self add_option("generators", "generator 6", ::teleportPlayer, (952.098, -3554.39, 306.125));
-        self add_menu_alt("generators", "teleport");
-        //crazy places
-        self add_option("teleport", "crazy places", ::submenu, "crazy place", "crazy place");
-        self add_menu("crazy place", "teleport", "Verified");
-        self add_option("crazy place", "ice staff", ::teleportPlayer, (11242.1, -7033.06, -345.875));
-        self add_option("crazy place", "fire staff", ::teleportPlayer, (9429.59, -8560.03, -397.875));
-        self add_option("crazy place", "wind staff", ::teleportPlayer, (11285.9, -8679.08, -407.875));
-        self add_option("crazy place", "lightning staff", ::teleportPlayer, (9621.84, -6989.4, -345.875));
-        self add_menu_alt("crazy place", "teleport");
-        //perks
-        self add_option("teleport", "perks", ::submenu, "perks", "perks");
-        self add_menu("perks", "teleport", "Verified");
-        self add_option("perks", "juggernog", ::teleportPlayer, (2329.01, -176.799, 139.125));
-        self add_option("perks", "staminup", ::teleportPlayer, (-2399.83, 3.22381, 233.342));
-        self add_option("perks", "quick revive", ::teleportPlayer, (2359.2, 5039.69, -303.875));
-        self add_option("perks", "speed cola", ::teleportPlayer, (890.851, 3223.45, -171.024));
-        self add_option("perks", "mule kick", ::teleportPlayer, (-3.33877, -405.654, -493.875));
-        self add_menu_alt("perks", "teleport");
-    }
-    else
-    {
-        self add_option("teleport", "coming soon!");
-    }
-
-    // configure settings menu
+    
+    // killcam settings menu
     self add_menu("killcam", self.menuname, "Verified");
     self add_option("killcam", "(self) killcam rank", ::submenu, "killcam_rank", "killcam rank");
     self add_option("killcam", "killcam length", ::submenu, "killcam_length", "killcam length");
@@ -252,21 +228,26 @@ create_menu()
     self add_option("afterhit", "five-seven dual wield", scripts\zm\afterhits::afterhitweapon, 0);
     self add_option("afterhit", "knuckles", scripts\zm\afterhits::afterhitweapon, 1);
     self add_option("afterhit", "random perk bottle", scripts\zm\afterhits::afterhitweapon, 2);
-    if (level.script == "zm_tomb" || level.script == "zm_buried")
-        self add_option("afterhit", "chalk", scripts\zm\afterhits::afterhitweapon, 3);
     self add_option("afterhit", "syrette", scripts\zm\afterhits::afterhitweapon, 4);
     if (level.script == "zm_prison")
     {
         self add_option("afterhit", "syrette (afterlife)", scripts\zm\afterhits::afterhitweapon, 17);
         self add_option("afterhit", "afterlife hands", scripts\zm\afterhits::afterhitweapon, 6);
         self add_option("afterhit", "tomahawk", scripts\zm\afterhits::afterhitweapon, 5);
+        self add_option("afterhit", "death machine", scripts\zm\afterhits::afterhitweapon, 18);
     }
     if (level.script == "zm_transit")
-        self add_option("afterhit", "screecher arms", scripts\zm\afterhits::afterhitweapon, 16);
+    {
+        if(level.gametype != "zstandard") /* have not tested yet MIGHT CAUSES CRASHING ---- TEST LATER! */
+        {
+            self add_option("afterhit", "screecher arms", scripts\zm\afterhits::afterhitweapon, 16);
+        }
+    }
     if (level.script == "zm_tomb")
         self add_option("afterhit", "iron punch", scripts\zm\afterhits::afterhitweapon, 7);
     if( level.script == "zm_buried" )
     {
+        self add_option("afterhit", "chalk", scripts\zm\afterhits::afterhitweapon, 3);
         self add_option("afterhit", "remington new model army", scripts\zm\afterhits::afterhitweapon, 8);
         self add_option("afterhit", "paralyzer", scripts\zm\afterhits::afterhitweapon, 9);
     }
@@ -368,6 +349,9 @@ create_menu()
     // self add_option("perk", "fast hands (weapon switch)", ::doperks, "specialty_fastweaponswitch",1);
     self add_option("perk", "unlimited sprint", ::doperks, "specialty_unlimitedsprint",1);
     self add_option("perk", "lightweight (fall damage)", ::doperks, "specialty_fallheight",1);
+
+    self _blank("perk",true);
+
     if (is_true(level.zombiemode_using_juggernaut_perk))
         self add_option("perk", "juggernaut", ::doperks, "specialty_armorvest",1);
     if (is_true(level.zombiemode_using_sleightofhand_perk))
@@ -424,27 +408,38 @@ create_menu()
     self add_option("revive2", "revive radius 10000", ::reviveradius, 10000);
 
     /* binds menu */
-    self add_menu("binds", self.menuname, "Verified");
-    self add_option("binds", "reset all binds", ::bindinit, true);
-    // self add_option("binds", "change canswap bind", ::canswapbind);
-    self add_option("binds", "change canswap bind", ::changebind, "canswap", "Canswap");
-    self add_option("binds", "knuckle crack bind", ::changebind, "knucklecrack", "Knuckle Crack Animation");
-    self add_option("binds", "placeholder", ::print_wrapper, "placeholder button");
-    if (level.script != "zm_tomb" && level.script != "zm_prison")
-    {
-        self add_option("binds", "bowie knife animation bind", ::changebind, "bowieanim", "Bowie Knife Animation");
-        self add_option("binds", "galva knuckles animation bind", ::changebind, "galvaanim", "Galva Knuckles Animation");
+    // self add_menu("binds", self.menuname, "Verified");
+    // /* buried will have 8 rn */
+    // self add_option("binds", "^1reset all binds^7", ::bindinit, true);
 
-        if (level.script == "zm_buried") {
-            self add_option("binds", "chalk draw animation bind", ::changebind, "chalkdrawanim", "Chalk Draw Animation");
-        }
-    }
-    if (level.script == "zm_tomb") {
-            self add_option("binds", "iron fists animation bind", ::changebind, "oipanim", "Iron Fists Animation");
-    }
-    if (level.script == "zm_prison") {
-        self add_option("binds", "tomahawk spin animation bind", ::changebind, "axeanim", "Tomahawk Spin Animation");
-    }
+    // self _blank("binds");
+
+    // self add_option("binds", "change canswap bind", ::changebind, "canswap", "Canswap");
+    // self add_option("binds", "knuckle crack bind", ::changebind, "knucklecrack", "Knuckle Crack Animation");
+    // if (level.script != "zm_tomb" && level.script != "zm_prison")
+    // {
+    //     self add_option("binds", "bowie knife animation bind", ::changebind, "bowieanim", "Bowie Knife Animation");
+    //     self add_option("binds", "galva knuckles animation bind", ::changebind, "galvaanim", "Galva Knuckles Animation");
+
+    //     if (level.script == "zm_buried") {
+    //         self add_option("binds", "chalk draw animation bind", ::changebind, "chalkdrawanim", "Chalk Draw Animation");
+    //     }
+    // }
+    // if (level.script == "zm_tomb") {
+    //         self add_option("binds", "iron fists animation bind", ::changebind, "oipanim", "Iron Fists Animation");
+    // }
+    // if (level.script == "zm_prison") {
+    //     self add_option("binds", "tomahawk spin animation bind", ::changebind, "axeanim", "Tomahawk Spin Animation");
+    // }
+
+    // self add_option("binds", "flip binds menu", ::submenu, "flipbinds", "flip binds menu"); 
+    // /* flips menu */
+    // self add_menu("flipbinds", "binds", "Verified");
+    // self add_option("flipbinds", "backflip bind", ::changebind, "backflip", "Backflip Bind");
+    // self add_option("flipbinds", "frontflip bind", ::changebind, "frontflip", "Frontflip Bind");
+    // self add_option("flipbinds", "leftflip bind", ::changebind, "leftflip", "Leftflip Bind");
+    // self add_option("flipbinds", "rightflip bind", ::changebind, "rightflip", "Rightflip Bind");
+
     // self add_option("binds", "page 2", ::submenu, "binds2", "binds page 2");
     // /* binds menu - page 2 */
     // self add_menu("binds2", "binds", "Verified");
@@ -453,6 +448,7 @@ create_menu()
     // zombies
     self add_menu("zombies", self.menuname, "Verified");
     self add_option("zombies", "spawn zombie", ::spawn_zombie);
+    // self add_option("zombies", "kick zombie", ::kick_zombie);
     if(level.script == "zm_tomb")
         self add_option("zombies", "spawn panzer", ::SpawnPanzer);
     if(level.script == "zm_prison")
@@ -539,6 +535,8 @@ update_players_menu()
             self add_option("pOpt " + i, "kill", ::killplayer, player);
             self add_option("pOpt " + i, "god", ::godmode, player);
             self add_option("pOpt " + i, "switch player team", ::switchteams, player);
+            if (level.script == "zm_prison")
+                self add_option("pOpt " + i, "jumpscare player", ::__jumpscare, player);
         }
     }
 }
