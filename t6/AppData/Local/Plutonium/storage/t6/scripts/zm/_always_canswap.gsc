@@ -4,8 +4,11 @@
 #include scripts\zm\functions;
 #include scripts\zm\_utility;
 
-set_canswap()
+set_canswap( threadFuncs )
 {
+    if(!isdefined(threadFuncs))
+        threadFuncs = true;
+
     if(self getPlayerCustomDvar("canswapweap") == "none")
     {
         b = maps\mp\zombies\_zm_weapons::get_base_name(self getCurrentWeapon());
@@ -17,22 +20,31 @@ set_canswap()
         self setClientDvar("canswapweap", "[" + b + "]");
         self setClientDvar("canswapweapfull", "[" + self getCurrentWeapon() + "]");
         // self setClientDvar("canswapweap", "[" + self getCurrentWeapon() + "]");
-        self thread alwayscanswapspecificloop();
-        self iPrintLnBold("Always Canswap: " + getPlayerCustomDvar("canswapweap"));
+
+        if(threadFuncs)
+            self thread alwayscanswapspecificloop();
+
+        self iPrintLn("Always Canswap: " + getPlayerCustomDvar("canswapweap"));
+        
     }
     else if(self getPlayerCustomDvar("canswapweap") == "all")
     {
-        self notify("stopalwayscanswapspecificloop");
+        if(threadFuncs)
+            self notify("stopalwayscanswapspecificloop");
+        
         self setPlayerCustomDvar("canswapweap","none");
         self setClientDvar("canswapweap","[none]");
-        self iPrintLnBold("Always Canswap: " + getPlayerCustomDvar("canswapweap"));
+        self iPrintLn("Always Canswap: " + getPlayerCustomDvar("canswapweap"));
     }
     else if(self getPlayerCustomDvar("canswapweap") != "none")
     {
         self setPlayerCustomDvar("canswapweap","all");
         self setClientDvar("canswapweap","[all]");
-        self thread alwayscanswapallloop();
-        self iPrintLnBold("Always Canswap: " + getPlayerCustomDvar("canswapweap"));
+
+        if(threadFuncs)
+            self thread alwayscanswapallloop();
+
+        self iPrintLn("Always Canswap: " + getPlayerCustomDvar("canswapweap"));
     }
 }
 
