@@ -217,37 +217,6 @@ modelSpawner(origin, model, angles)
     obj.angles = angles;
     return obj;
 }
-/*================== Tilting ==================*/
-
-// Right
-doTiltRight()
-{
-    if(self.righttilt == 0)
-    {
-        self setPlayerAngles(self.angles + (0, 0, 25));
-        self.righttilt = 1;
-    }
-    else
-    {
-        self setPlayerAngles(self.angles+(0,0,0));
-        self.righttilt = 0;
-    }
-}
-
-// Left
-doTiltLeft()
-{
-    if(self.leftTilt == 0)
-    {
-        self setPlayerAngles(self.angles + (0, 0, 335));
-        self.leftTilt = 1;
-    }
-    else
-    {
-        self setPlayerAngles(self.angles+(0,0,0));
-        self.leftTilt = 0;
-    }
-}
 
 /*================== Reset Angles ==================*/
 
@@ -256,28 +225,17 @@ doReset()
     self setPlayerAngles(self.angles+(0,0,0));
 }
 
-/*================== Upside Down ==================*/
-
-doUpsideDown()
-{
-    if(self.upsideDown == 0)
-    {
-        self setPlayerAngles(self.angles + (0, 0, 180));
-        self.upsideDown = 1;
-    }
-    else
-    {
-        self setPlayerAngles(self.angles+(0,0,0));
-        self.upsideDown = 0;
-    }
-}
-
 /*================== Cowboy ==================*/
 
 doCowboy()
 {
     self endon("game_ended");
     self endon( "disconnect" );
+    if(self.rcowboy)
+    {
+        self setClientDvar("cg_gun_z", "0");
+        self.rcowboy = false;
+    }
     if(self.cowboy == false)
     {
         self.cowboy = true;
@@ -298,6 +256,11 @@ doReverseCowboy()
 {
     self endon("game_ended");
     self endon( "disconnect" );
+    if(self.cowboy)
+    {
+        self setClientDvar("cg_gun_z", "0");
+        self.cowboy = false;
+    }
     if(self.rcowboy == false)
     {
         self.rcowboy = true;
@@ -321,81 +284,82 @@ doBounce(strength)
 
 /*================== Shield Bounces ==================*/
 
-cmdBounces() {
-	self endon( "disconnect" );
+// cmdBounces() {
+// 	self endon( "disconnect" );
 	
-	for(;;) {
-		self waittill( "cmd_bounces" );
+// 	for(;;) {
+// 		self waittill( "cmd_bounces" );
 		
-		self enablebounces();
+// 		self enablebounces();
 
-	}
-}
+// 	}
+// }
 
-enablebounces()
-{
-    if (!self.bouncescmd)
-    {
-        self iprintln("Easier Riot Shield Bounces ^2ON");
-        self thread riotshieldPlacement();
-        self.bouncescmd = true;
-    }
-    else if (self.bouncescmd)
-    {
-        self iprintln("Easier Riot Shield Bounces ^1OFF");
-        self notify("stopbouncesbruh");
-        self.bouncescmd = false;
-    }
+// enablebounces()
+// {
+//     if (!self.bouncescmd)
+//     {
+//         self iprintln("Easier Riot Shield Bounces ^2ON");
+//         self thread riotshieldPlacement();
+//         self.bouncescmd = true;
+//     }
+//     else if (self.bouncescmd)
+//     {
+//         self iprintln("Easier Riot Shield Bounces ^1OFF");
+//         self notify("stopbouncesbruh");
+//         self.bouncescmd = false;
+//     }
 
-}
+// }
 
-riotshieldPlacement() 
-{
+// riotshieldPlacement() 
+// {
+//     level endon("game_ended");
+//     level endon("end_game");
 
- level endon("game_ended");
-
-    for(;;) 
-    {
+//     for(;;) 
+//     {
     
-        level waittill("riotshield_planted", owner);
+//         // level waittill("riotshield_planted", owner);
+//         level waittill("destroy_riotshield", owner);
 
-        owner.riotshieldEntity thread riotshieldBounce();
-    }
-}
+//         owner.riotshieldEntity thread riotshieldBounce();
+//     }
+// }
 
-riotshieldBounce() 
-{
-    self endon("death");
-    self endon("destroy_riotshield");
-    self endon("damageThenDestroyRiotshield");
+// riotshieldBounce() 
+// {
+//     self endon("death");
+//     self endon("destroy_riotshield");
+//     self endon("damageThenDestroyRiotshield");
 
-    while( isDefined( self ) )
-    {
-           foreach(player in level.players) 
-        {
-            if(player.bouncescmd && distance(self.origin + (0, 0, 25), player.origin) < 25 && !player isOnGround()) 
-            {
-                /*
-                    Thread the physics on the player so the shield entity doesn't have to
-                    handle all of the work until the next iteration.
-                */
-                player thread riotshieldBouncePhysics();
-            }
-        }
+//     while( isDefined( self ) )
+//     {
+//            foreach(player in level.players) 
+//         {
+//             if(player.bouncescmd && distance(self.origin + (0, 0, 25), player.origin) < 25 && !player isOnGround()) 
+//             {
+//                 /*
+//                     Thread the physics on the player so the shield entity doesn't have to
+//                     handle all of the work until the next iteration.
+//                 */
+//                 player thread riotshieldBouncePhysics();
+//             }
+//         }
 
-        wait .05;
-    }
-}
-riotshieldBouncePhysics() {
-    bouncePower = 1; // Amount of times to apply max velocity to the player 
-    waitAmount = 0.01; // Time to wait between each velocity application 
+//         wait .05;
+//     }
+// }
+// riotshieldBouncePhysics() {
+//     bouncePower = 1; // Amount of times to apply max velocity to the player 
+//     waitAmount = 0.01; // Time to wait between each velocity application 
 
-    /*
-        Decrease waitAmount if i dont think its smooth enough
-    */
+//     /*
+//         Decrease waitAmount if i dont think its smooth enough
+//     */
 
-    for(i = 0; i < bouncePower; i++) {
-        self setVelocity(self getVelocity() + (0, 0, 400));
-        wait waitAmount;
-    }
-}
+//     for(i = 0; i < bouncePower; i++) {
+//         self setVelocity(self getVelocity() + (0, 0, 400));
+//         wait waitAmount;
+//     }
+// }
