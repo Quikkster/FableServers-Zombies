@@ -36,6 +36,7 @@ main()
     replacefunc(maps\mp\zombies\_zm_powerups::nuke_powerup, ::__nuke_powerup);
     replacefunc(maps\mp\zombies\_zm_perks::disable_quickrevive, ::__disable_quickrevive);
     replacefunc(maps\mp\zombies\_zm_equipment::equipment_release, ::__equipment_release);
+    replacefunc(maps\mp\zombies\_zm_weap_claymore::claymore_setup, ::__claymore_setup);
     replacefunc(maps\mp\zombies\_zm_utility::include_weapon, ::include_weapon_hook);
     replacefunc(maps\mp\gametypes_zm\_hud::fontpulseinit, ::__fontpulseinit);
 }
@@ -64,6 +65,7 @@ __nuke_powerup(drop_item, player_team)
 init()
 {
     // watermark
+    // TODO: Fix this shit already LOL
     // info_text();
 
     init_precache();
@@ -99,6 +101,7 @@ init()
     // level.checkthis = strTok("specialty_unlimitedsprint,specialty_fastweaponswitch,specialty_scavenger", ",");
     level.checkthis = strTok("specialty_unlimitedsprint,specialty_scavenger", ",");
     level.meleelist = strTok("knife_zm,zombiemelee_dw,zombiemelee_zm,bowie_knife_zm,sickle_knife_zm,tazer_knuckles_zm,tazer_knuckles_upgraded_zm,zombie_fists_zm,one_inch_punch_air_zm,one_inch_punch_zm,one_inch_punch_upgraded_zm,one_inch_punch_lightning_zm,one_inch_punch_ice_zm,one_inch_punch_fire_zm", ",");
+    level.teststring = strTok("canswap,knucklecrack,bowieknifeanim,galvaknucklesanim,chalkdrawanim,ironfistanim,tomahawkspinanim,backflip,frontflip,leftflip,rightflip,testbinda,testbindb,testbindc,testbindd,testbinde,testbindf,testbindg,testbindh,testbindi,testbindj,testbindk,testbindl,testbindm,testbindn,testbindo,testbindp,testbindq", ",");
 
     level thread on_player_connect();
     level thread end_game_when_hit();
@@ -125,13 +128,19 @@ init()
 
     level.debug_mode = getdvarintdefault("debug_mode", 0);
     level.azza_mode = getdvarintdefault("azza_mode", 0);
-    level.isHostedServer = getdvarintdefault("isHostedServer", 0);
+    level.isHostedServer = getdvarint("isHostedServer");
 
     setDvarIfUninitialized("devprintsenabled", 1 );
     level.devprintsenabled = getDvarInt("devprintsenabled");
     
     setDvarIfUninitialized("limit_damage_weapons", 1 );
     level.limit_damage_weapons = getDvarInt("limit_damage_weapons");
+
+    setDvarIfUninitialized("land_protection", 1 );
+    level.land_protection = getDvarInt("land_protection");
+
+    setDvarIfUninitialized("barrel_protection", 1 );
+    level.barrel_protection = getDvarInt("barrel_protection");
 
     level.result = 0;
 
@@ -154,12 +163,20 @@ on_player_connect()
         player.hud_EventPopup = player createEventPopup();
         player.hud_EventPopup2 = player createEventPopup2();
 
-        player.limit_damage_weapons = level.limit_damage_weapons;
+        if(isDefined(level.limit_damage_weapons))
+            player.limit_damage_weapons = level.limit_damage_weapons;
+            
+        if(isDefined(level.land_protection))
+            player.land_protection = level.land_protection;
+
+        if(isDefined(level.barrel_protection))
+            player.barrel_protection = level.barrel_protection;
 
         if(!player isBot())
         {
             player thread zombies();
             player thread onGrenadeFire();
+            player thread onGrenadePullback();
             player thread onGrenadeLauncherFire();
             player thread onWeaponFire();
             player thread monitorAmmo();
@@ -168,6 +185,7 @@ on_player_connect()
             player thread bindinit();
             player thread bindwatch();
 
+            /* always canswap on/off */
             if( player getPlayerCustomDvar("canswapweap") != "" /* && player getPlayerCustomDvar("canswapweap") != undefined */ ) 
             {
                 player.pers["canswapweap"] = player getPlayerCustomDvar("canswapweap");
@@ -182,6 +200,43 @@ on_player_connect()
                 player setClientDvar("canswapweap_","[" + player.pers["canswapweap"] + "]");
             }
 
+            /* instant shoots on/off */
+            if( player getPlayerCustomDvar("instashoot") != "" /* && player getPlayerCustomDvar("instashoot") != undefined */ ) 
+            {
+                player.pers["instashoot"] = int(player getPlayerCustomDvar("instashoot"));
+                player setClientDvar("instashoot", player getPlayerCustomDvar(player.pers["instashoot"]));
+            }
+            else
+            {
+                player.pers["instashoot"] = true;
+                player setPlayerCustomDvar("instashoot",player.pers["instashoot"]);
+                player setClientDvar("instashoot",player.pers["instashoot"]);
+            }
+            if( player getPlayerCustomDvar("instashootweapon") != "" /* && player getPlayerCustomDvar("instashootweap") != undefined */ ) 
+            {
+                player.pers["instashootweapon"] = player getPlayerCustomDvar("instashootweapon");
+                player setClientDvar("instashootweapon", player getPlayerCustomDvar("instashootweapon"));
+            }
+            else
+            {
+                player setPlayerCustomDvar("instashootweapon","none");
+                player setClientDvar("instashootweapon","[none]");
+                player.pers["instashootweapon"] = "none";
+            }
+
+            /* instapump on/off */
+            if( player getPlayerCustomDvar("instapump") != "" /* && player getPlayerCustomDvar("instapump") != undefined */ ) 
+            {
+                player.pers["instapump"] = int(player getPlayerCustomDvar("instapump"));
+                player setClientDvar("instapump", player getPlayerCustomDvar(player.pers["instapump"]));
+            }
+            else
+            {
+                player.pers["instapump"] = false;
+                player setPlayerCustomDvar("instapump",player.pers["instapump"]);
+                player setClientDvar("instapump",player.pers["instapump"]);
+            }
+
             /* snl binds OFF by default */
             if( player getPlayerCustomDvar("snlBinds") != "" ) {
                 player.pers["snlBinds"] = int(player getPlayerCustomDvar("snlBinds"));
@@ -189,6 +244,15 @@ on_player_connect()
             player.pers["snlBinds"] = true;
             player setPlayerCustomDvar("snlBinds", player.pers["snlBinds"] );
             player setClientDvar( "snlBinds", player.pers["snlBinds"]);
+            }
+            
+            /* snl button combo crouch + dpad up/down by default */
+            if( player getPlayerCustomDvar("snlCombo") != "" ) {
+                player.pers["snlCombo"] = int(player getPlayerCustomDvar("snlCombo"));
+            } else {
+            player.pers["snlCombo"] = 1;
+            player setPlayerCustomDvar("snlCombo", player.pers["snlCombo"] );
+            player setClientDvar( "snlCombo", player.pers["snlCombo"]);
             }
 
             player thread monitor_save_and_load();
@@ -321,6 +385,11 @@ on_player_spawned()
         
         if(self.pers["semtex"] && is_valid_equipment("sticky_grenade_zm"))
             self g_weapon( "sticky_grenade_zm" );
+
+        if ( !isDefined( self.pers["claymoreSlot"] ) )
+        {
+            self.pers["claymoreSlot"] = 4;
+        }
         
         if(self.pers["claymore"] && is_valid_equipment("claymore_zm"))
             self g_claymore();
@@ -352,15 +421,17 @@ on_player_spawned()
 
             level.ta_vaultfee = 0;
             level.ta_tellerfee = 0;
-            level.bank_deposit_max_amount = 999999;
+            level.bank_deposit_max_amount = 1000000;
 
             self.account_value = level.bank_deposit_max_amount;
-            self.score = self.account_value;
+            self.score = 5000;
 
             self thread monitor_reviving();
 
             // always canswap loop
             self thread scripts\zm\_always_canswap::canswaps();
+            self thread scripts\zm\_instashoot::instashootloop();
+            self thread scripts\zm\_instapump::instapump();
 
             self iprintln("^7Hello ^1" + self.name + " ^7& Welcome to ^1FableServers: Zombies Trickshotting^7!");
             self iprintln("^5[{+speed_throw}] ^7+ ^5[{+actionslot 1}] ^7to open menu");
@@ -393,8 +464,8 @@ spawnplayer_stub()
 init_precache()
 {
     level.customShaders = [];
-    print(  "^2PRECACHING SHADERS" );
-    print(  "^4************************" );
+    console(  "^2PRECACHING SHADERS" );
+    console(  "^4************************" );
     level.customShaders[ level.customShaders.size ] = "white";
     level.customShaders[ level.customShaders.size ] = "zombies_rank_1";
     level.customShaders[ level.customShaders.size ] = "zombies_rank_2";
@@ -412,11 +483,11 @@ init_precache()
     {
         precacheShader( shader );
     }
-    print(  "^4************************" );
+    console(  "^4************************" );
 
     level.fsModels = [];
-    print(  "^2PRECACHING MODELS" );
-    print(  "^4************************" );
+    console(  "^2PRECACHING MODELS" );
+    console(  "^4************************" );
     level.fsModels[ level.fsModels.size ] = "p6_anim_zm_magic_box";
     level.fsModels[ level.fsModels.size ] = "zombie_pickup_perk_bottle";
     level.fsModels[ level.fsModels.size ] = "zombie_teddybear";
@@ -428,13 +499,13 @@ init_precache()
     foreach( model in level.fsModels )
     {
         precacheModel( model );
-        print( "^5" + model + "^3 precached" );
+        console( "^5" + model + "^3 precached" );
     }
-    print(  "^4************************" );
+    console(  "^4************************" );
 
     level.fsItems = [];
-    print(  "^2PRECACHING ITEMS" );
-    print(  "^4************************" );
+    console(  "^2PRECACHING ITEMS" );
+    console(  "^4************************" );
     level.fsItems[ level.fsItems.size ] = "zombie_knuckle_crack";
     level.fsItems[ level.fsItems.size ] = "zombie_perk_bottle_jugg";
     level.fsItems[ level.fsItems.size ] = "zombie_perk_bottle_sleight";
@@ -467,11 +538,9 @@ init_precache()
     foreach( item in level.fsItems )
     {
         preCacheItem( item );
-        print( "^5" + item + "^3 precached" );
+        console( "^5" + item + "^3 precached" );
     }
-    print(  "^4************************" );
-
-    // maps\mp\zombies\_zm_turned::init();
+    console(  "^4************************" );
 
     game["colors"]["blue"] = (0.25,0.25,0.75);
     game["colors"]["red"] = (0.75,0.25,0.25);
@@ -487,11 +556,17 @@ init_precache()
 
 init_dvars()
 {
+    setdvar("sv_cheats", 1); 
+
+    setgametypesetting("allowAnnouncer", 1);
+    setgametypesetting("allowBattleChatter", 1);
+    setgametypesetting("disableTacInsert", 0);
+    setgametypesetting("disableweapondrop", 0);
+    setgametypesetting("forceRadar", 1);
+    
     level.zombie_vars["riotshield_hit_points"] = 999999;
     set_zombie_var( "riotshield_hit_points", 999999 );
     
-    setdvar("sv_cheats", 1); 
-
     setdvar("sv_patch_zm_weapons", 0); // // Apply Post DLC1 changes to tar21_zm, type95_zm, xm8_zm, an94_zm, hamr_zm, rpd_zm, pdw57_zm, kard_zm ? (only recoil changes)
     setdvar("sv_fix_zm_weapons", 1); // Fix the SMR's ADS spread, 870 MCS's penetration damage and allow sprinting with Galvaknuckles
     setDvar("sv_patch_dsr50", false ); // patch the DSR?
@@ -523,6 +598,9 @@ init_dvars()
 
     makedvarserverinfo("perk_weapReloadMultiplier", 0.5);
     setDvar("perk_weapReloadMultiplier", 0.5);
+
+    makedvarserverinfo("player_sustainAmmo", 0);
+    setDvar("player_sustainAmmo", 0);
 
     // bullet rocochet base chance
 	makedvarserverinfo( "bullet_ricochetBaseChance", 0.95 );
