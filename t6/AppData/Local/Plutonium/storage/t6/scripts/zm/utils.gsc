@@ -34,19 +34,19 @@ convertbindtoannounce( bind )
         case "knucklecrack":
             return "Knuckle Crack";
 
-        case "bowieanim":
+        case "bowieknifeanim":
             return "Bowie Knife Animation";
 
-        case "galvaanim":
+        case "galvaknucklesanim":
             return "Galva Knuckles Animation";
 
         case "chalkdrawanim":
             return "Chalk Draw Animation";
 
-        case "oipanim":
+        case "ironfistanim":
             return "Iron Fists Animation";
 
-        case "axeanim":
+        case "tomahawkspinanim":
             return "Tomahawk Spin Animation";
 
         case "canswap":
@@ -56,7 +56,8 @@ convertbindtoannounce( bind )
         case "rightflip":
             return firstLetterToUpper(bind);
     }
-    return bind;
+    // return bind;
+    return firstLetterToUpper(bind);
 }
 
 /* work inn progress, i think the func part is what breaks it */
