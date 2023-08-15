@@ -33,7 +33,6 @@ draw_teleport_menu()
     self add_option(self.menuname, "teleport", ::submenu, "teleport", "teleport");
     self add_menu("teleport", self.menuname, "Verified");
 
-    // thank you @miyzu!!!
     if (level.script == "zm_transit")
     {
         self add_option("teleport", "teleport onto the bus", ::teleportToBus);
@@ -117,10 +116,12 @@ draw_teleport_menu()
 	}
     else if( level.script == "zm_tomb")
     {
+        self add_option("teleport", "biplane ride", ::spawn_biplane_ride, self);
+        self _blank("teleport",true);
+
         if(isDefined(level.random_perk_start_machine))
             self add_option("teleport", "wunderfizz machine", ::___tp, level.random_perk_start_machine.origin );
 
-        self add_option("teleport", "biplane ride", ::spawn_biplane_ride, self);
         self add_option("teleport", "tank 1st spot", ::teleportPlayer, (160.635, -2755.65, 43.5474));
         self add_option("teleport", "tank 2nd spot", ::teleportPlayer, (-86.3847, 4654.54, -288.052));
         self add_option("teleport", "no mans land", ::teleportPlayer, (-760.179, 1121.94, 119.175));
@@ -131,7 +132,7 @@ draw_teleport_menu()
         self _blank("teleport",true);
 
         //generators
-        self add_option("teleport", "generators", ::submenu, "generators", "generator");
+        self add_option("teleport", "generators menu", ::submenu, "generators", "generators menu");
         self add_menu("generators", "teleport", "Verified"); 
         self add_option("generators", "generator 1", ::teleportPlayer, (-86.3847, 4654.54, -288.052));
         self add_option("generators", "generator 2", ::teleportPlayer, (2170.5, 4660.37, -299.875));
@@ -141,7 +142,7 @@ draw_teleport_menu()
         self add_option("generators", "generator 6", ::teleportPlayer, (952.098, -3554.39, 306.125));
         self add_menu_alt("generators", "teleport");
         //crazy places
-        self add_option("teleport", "crazy places", ::submenu, "crazy place", "crazy place");
+        self add_option("teleport", "crazy places menu", ::submenu, "crazy place", "crazy place menu");
         self add_menu("crazy place", "teleport", "Verified");
         self add_option("crazy place", "ice staff", ::teleportPlayer, (11242.1, -7033.06, -345.875));
         self add_option("crazy place", "fire staff", ::teleportPlayer, (9429.59, -8560.03, -397.875));
@@ -149,7 +150,7 @@ draw_teleport_menu()
         self add_option("crazy place", "lightning staff", ::teleportPlayer, (9621.84, -6989.4, -345.875));
         self add_menu_alt("crazy place", "teleport");
         //perks
-        self add_option("teleport", "perks", ::submenu, "perks", "perks");
+        self add_option("teleport", "perk machines menu", ::submenu, "perks", "perk machines menu");
         self add_menu("perks", "teleport", "Verified");
         self add_option("perks", "juggernog", ::teleportPlayer, (2329.01, -176.799, 139.125));
         self add_option("perks", "staminup", ::teleportPlayer, (-2399.83, 3.22381, 233.342));
