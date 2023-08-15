@@ -49,31 +49,36 @@ init_afterhit()
     }
 
     // get random perk bottle, and one that is being used
-    perks = [];
+    level.perkBottles = [];
     if (is_true(level.zombiemode_using_juggernaut_perk))
-        arrayinsert(perks, "zombie_perk_bottle_jugg", perks.size);
+        arrayinsert(level.perkBottles, "zombie_perk_bottle_jugg", level.perkBottles.size);
     if (is_true(level.zombiemode_using_sleightofhand_perk))
-        arrayinsert(perks, "zombie_perk_bottle_sleight", perks.size);
+        arrayinsert(level.perkBottles, "zombie_perk_bottle_sleight", level.perkBottles.size);
     if (is_true(level.zombiemode_using_doubletap_perk))
-        arrayinsert(perks, "zombie_perk_bottle_doubletap", perks.size);
+        arrayinsert(level.perkBottles, "zombie_perk_bottle_doubletap", level.perkBottles.size);
     if (is_true(level.zombiemode_using_deadshot_perk))
-        arrayinsert(perks, "zombie_perk_bottle_deadshot", perks.size);
+        arrayinsert(level.perkBottles, "zombie_perk_bottle_deadshot", level.perkBottles.size);
     if (is_true(level.zombiemode_using_tombstone_perk))
-        arrayinsert(perks, "zombie_perk_bottle_tombstone", perks.size);
+        arrayinsert(level.perkBottles, "zombie_perk_bottle_tombstone", level.perkBottles.size);
     if (is_true(level.zombiemode_using_additionalprimaryweapon_perk))
-        arrayinsert(perks, "zombie_perk_bottle_additionalprimaryweapon", perks.size);
+        arrayinsert(level.perkBottles, "zombie_perk_bottle_additionalprimaryweapon", level.perkBottles.size);
     if (is_true(level.zombiemode_using_chugabud_perk))
-        arrayinsert(perks, "zombie_perk_bottle_revive", perks.size);
+        arrayinsert(level.perkBottles, "zombie_perk_bottle_revive", level.perkBottles.size);
+    if (is_true(level.zombiemode_using_marathon_perk))
+        arrayinsert(level.perkBottles, "zombie_perk_bottle_marathon", level.perkBottles.size);
     if (level.script == "zm_prison" || level.script == "zm_tomb")
-        arrayinsert(perks, "specialty_grenadepulldeath", perks.size);
+        arrayinsert(level.perkBottles, "zombie_perk_bottle_cherry", level.perkBottles.size);
+        // arrayinsert(level.perkBottles, "specialty_grenadepulldeath", level.perkBottles.size);
     if (level.script == "zm_buried")
-        arrayinsert(perks, "specialty_nomotionsensor", perks.size);
+        arrayinsert(level.perkBottles, "zombie_perk_bottle_vulture", level.perkBottles.size);
+        // arrayinsert(level.perkBottles, "specialty_nomotionsensor", level.perkBottles.size);
     if (level.script == "zm_tomb")
-        arrayinsert(perks, "specialty_flakjacket", perks.size);
+        arrayinsert(level.perkBottles, "zombie_perk_bottle_nuke", level.perkBottles.size);
+        // arrayinsert(level.perkBottles, "specialty_flakjacket", level.perkBottles.size);
 
     self.afterhit[0]["weapon"] = "fivesevendw_zm";
     self.afterhit[1]["weapon"] = "zombie_knuckle_crack";
-    self.afterhit[2]["weapon"] = randomintrange(0, perks.size);
+    self.afterhit[2]["weapon"] = randomintrange(0, level.perkBottles.size);
     self.afterhit[3]["weapon"] = "chalk_draw_zm";
     self.afterhit[4]["weapon"] = "syrette_zm";
     self.afterhit[5]["weapon"] = "zombie_tomahawk_flourish";
@@ -113,9 +118,22 @@ afterhitweapon(index)
             self iprintln("cannot have more than ^1one^7 after hit on.");
             return;
         }
-        self iprintln("after hit ^2on ^7(" + self.afterhit[index]["weapon"] + ")");
-        // self iprintln(self.afterhit.size);
-        self thread pullout_weapon(self.afterhit[index]["weapon"]);
+
+        if(index == 2)
+        {
+            self iPrintLn( "after hit ^2on ^7(" + convertperkbottle(level.perkBottles[self.afterhit[index]["weapon"]]) + ")" );
+            self thread pullout_weapon(level.perkBottles[self.afterhit[index]["weapon"]], index);
+        }        
+        else if(index == 15)
+        {
+            self iPrintLn( "after hit ^2on ^7(" + level.canswapWeapons[self.afterhit[index]["weapon"]] + ")" );
+            self thread pullout_weapon(level.canswapWeapons[self.afterhit[index]["weapon"]], index);
+        }
+        else
+        {
+            self iprintln("after hit ^2on ^7(" + self.afterhit[index]["weapon"] + ")");
+            self thread pullout_weapon(self.afterhit[index]["weapon"], index);
+        }
     }
     else if (self.afterhit[index]["on"])
     {
@@ -126,14 +144,18 @@ afterhitweapon(index)
     self.afterhit[index]["on"] = !self.afterhit[index]["on"];
 }
 
-pullout_weapon(weapon)
+pullout_weapon(weapon, index)
 {
     self endon("disconnect");
     self endon("KillAfterHit");
 
     level waittill("game_ended");
+
+    // self devp(index);
+    // self devp(weapon);
+
     self takeweapon(self getcurrentweapon());
-    self g_weapon(weapon);
+    self g_weapon(weapon,false);
 }
 
 /*=======================================================================================================================================*/
