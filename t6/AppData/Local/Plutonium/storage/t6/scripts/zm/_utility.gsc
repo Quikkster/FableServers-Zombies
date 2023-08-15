@@ -54,6 +54,24 @@ getClient()
     return result;
 }
 
+toggle_limit_weapons()
+{
+    self.limit_damage_weapons = !self.limit_damage_weapons;
+    self iprintln("limit damage weapons at last: " + convertstatus(self.limit_damage_weapons));
+}
+
+toggle_land_protection()
+{
+    self.land_protection = !self.land_protection;
+    self iprintln("land protection at last: " + convertstatus(self.land_protection));
+}
+
+toggle_barrel_protection()
+{
+    self.barrel_protection = !self.barrel_protection;
+    self iprintln("barrelstuff protection at last: " + convertstatus(self.barrel_protection));
+}
+
 firstLetterToUpper( word )
 {
 	newWord = _letterToUpper( word[0] );
@@ -144,6 +162,14 @@ waitframe()
     wait ( 0.05 );
 }
 
+waitframes(frames)
+{
+    if(!isdefined(frames))
+        frames = 1;
+
+    wait ( 0.05 * frames );
+}
+
 generate_random_password( length )
 {
     if(!isDefined(length))
@@ -158,6 +184,7 @@ generate_random_password( length )
 }
 
 /* 
+// print it to a file??
 pin = generate_random_password();
 setDvar( "g_password", pin );
 
@@ -227,20 +254,20 @@ definepers(var,value,strtoint)
     // }
 
     // self devp( var + " set to " + self.pers[var]);
-    // print( var + " set to " + self.pers[var]);
+    // console( var + " set to " + self.pers[var]);
     
     // self devp( convertbindtoannounce(var) + " set to " + self.pers[var]);
-    // print( convertbindtoannounce(var) + " set to " + self.pers[var]);
+    // console( convertbindtoannounce(var) + " set to " + self.pers[var]);
 
     if(self.pers[var] != 0)
     {
         self devp(convertbindtoannounce(var) + " set to^5[{+actionslot "+ self.pers[var]+"}]");
-        print(convertbindtoannounce(var) + " set to ^5[{+actionslot "+ self.pers[var]+"}]");
+        console(convertbindtoannounce(var) + " set to ^5[{+actionslot "+ self.pers[var]+"}]");
     }
     else
     {
         self devp(convertbindtoannounce(var) + " ^1Disabled");
-        print(convertbindtoannounce(var) + " ^1Disabled");
+        console(convertbindtoannounce(var) + " ^1Disabled");
     }
 }
 
@@ -255,20 +282,20 @@ forcedefinepers(var,value,strtoint)
     self setClientDvar( var, self.pers[var]);
 
     // self devp( var + " set to " + self.pers[var]);
-    // print( var + " set to " + self.pers[var]);
+    // console( var + " set to " + self.pers[var]);
     
     // self devp( convertbindtoannounce(var) + " set to " + self.pers[var]);
-    // print( convertbindtoannounce(var) + " set to " + self.pers[var]);
+    // console( convertbindtoannounce(var) + " set to " + self.pers[var]);
 
     if(self.pers[var] != 0)
     {
-        self devp(convertbindtoannounce(var) + " set to^5[{+actionslot "+ self.pers[var]+"}]");
-        print(convertbindtoannounce(var) + " set to ^5[{+actionslot "+ self.pers[var]+"}]");
+        self devp(convertbindtoannounce(var) + " set to ^5[{+actionslot "+ self.pers[var]+"}]");
+        console(convertbindtoannounce(var) + " set to ^5[{+actionslot "+ self.pers[var]+"}]");
     }
     else
     {
         self devp(convertbindtoannounce(var) + " ^1Disabled");
-        print(convertbindtoannounce(var) + " ^1Disabled");
+        console(convertbindtoannounce(var) + " ^1Disabled");
     }
 }
 
@@ -957,6 +984,12 @@ getbullettrace()
     return x;
 }
 
+getdistance(ent1,ent2)
+{
+    distance = int(Distance(ent1.origin, ent2.origin)*0.0254);
+    return distance;
+}
+
 setDvarForAllPlayers( dvar, value )
 {
     players = level.players;
@@ -1268,6 +1301,8 @@ convertperk( perk )
         return "Vulture Aid";
     else if ( perk == "specialty_grenadepulldeath" )
         return "Electric Cherry";
+    else if ( perk == "specialty_flakjacket" )
+        return "PHD Flopper";
     else if ( perk == "specialty_fastweaponswitch" )
         return "Fast Hands";
     else if ( perk == "specialty_unlimitedsprint" )
@@ -1276,6 +1311,38 @@ convertperk( perk )
         return "Lightweight";
 	else
         return perk;
+}
+
+convertperkbottle( perkbottle )
+{
+	perkbottle = toLower( perkbottle );
+
+    if ( perkbottle == "zombie_perk_bottle_doubletap" )
+        return "Double Tap";
+    else if ( perkbottle == "zombie_perk_bottle_sleight" )
+        return "Speed Cola";
+    else if ( perkbottle == "specialty_longersprint" || perkbottle == "zombie_perk_bottle_marathon" )
+        return "Staminup";
+    else if ( perkbottle == "zombie_perk_bottle_jugg" )
+        return "Juggernog";
+    else if ( perkbottle == "zombie_perk_bottle_deadshot" )
+        return "Deadshot";
+    else if ( perkbottle == "zombie_perk_bottle_tombstone" )
+        return "Tombstone";
+    else if ( perkbottle == "zombie_perk_bottle_additionalprimaryweapon" )
+        return "Mule Kick";
+    else if ( perkbottle == "zombie_perk_bottle_revive" )
+        return "Quick Revive";
+    else if ( perkbottle == "specialty_finalstand" || perkbottle == "zombie_perk_bottle_whoswho")
+        return "Who's Who";
+    else if ( perkbottle == "specialty_nomotionsensor" || perkbottle == "zombie_perk_bottle_vulture")
+        return "Vulture Aid";
+    else if ( perkbottle == "specialty_grenadepulldeath" || perkbottle == "zombie_perk_bottle_cherry" )
+        return "Electric Cherry";
+    else if ( perkbottle == "specialty_flakjacket" || perkbottle == "zombie_perk_bottle_nuke" )
+        return "PHD Flopper";
+	else
+        return perkbottle;
 }
 
 colorNameToStrColor( color )
@@ -1348,7 +1415,7 @@ GetColor( color ){
         case "random":
             Colors = strTok("red,cyan,blue,white,orange,lightgreen,lightblue,pink,green,purple,black", ",");
                 result =  GetColor(Colors[RandomInt(Colors.size-1)]); //getColor(RandomInt(Colors.size-1));
-                print("Color Random;" + result +"\n");
+                console("Color Random;" + result +"\n");
                 return result;
     }
 }
@@ -1611,6 +1678,14 @@ devpb(str)
 		self iPrintLnBold(str);
 }
 
+printconsole(str){console(str);}
+
+console(str)
+{
+    if(level.devprintsenabled)
+        print(str);
+}
+
 model(Location, model)
 {
 	Mod = spawn("script_model",Location);
@@ -1633,4 +1708,62 @@ endGameThing()
 			setdvar( "ui_errorMessageDebug", "^6Developed by @QKSTR" );
 		} 
 	}
+}
+
+weapname(weap)
+{
+  array = strTok(maps\mp\zombies\_zm_weapons::get_base_name(weap),"_");
+  if(isSubStr(array[0],"iw6"))
+  return array[1];
+  else 
+  return array[0];
+} 
+
+mapname( map )
+{
+    switch(map)
+    {
+        case "zm_nuked":
+            return "Nuketown";
+        
+        case "zm_buried":
+            return "Buried";
+
+        case "zm_prison":
+            return "Mob of the Dead";
+
+        case "zm_transit":
+            if(getdvar("ui_zm_mapstartlocation") == "farm")
+            {
+                return "Farm";
+            }
+            else if(getdvar("ui_zm_mapstartlocation") == "town")
+            {
+                return "Town";
+            }
+            else if(getdvar("ui_zm_mapstartlocation") == "transit")
+            {
+                if(getdvar("g_gametype") == "zstandard")
+                {
+                    return "Bus Depot";
+                }
+                else if(getdvar("g_gametype") == "zclassic")
+                {
+                    return "Transit";
+                }
+            }
+            else
+            {
+                return "Transit";
+            }
+
+        case "zm_highrise":
+            return "Die Rise";
+
+        case "zm_tomb":
+            return "Origins";
+
+        default:
+            return map;
+    }
 }
