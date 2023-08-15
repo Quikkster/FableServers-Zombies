@@ -32,28 +32,19 @@
 
 create_menu()
 {
-    // level.testing = strTok( "1.2.3.4.5.6.7.8.9.10.11.12.13.14.15.16.17.18.19.20.21.22.23.24.25.26.27.28.29.30.31.32.33", "." );
     self add_menu(self.menuname, undefined, "Verified");
-    if (is_true(level.debug_mode) || self scripts\zm\guid::isQKSTR())
-    {
-        // self add_option(self.menuname, "test", ::test);
-        // self add_option(self.menuname, "^1weapon finder^7", ::weaponfinder);
-
-        // self add_option(self.menuname, "dev", ::submenu, "dev", "dev");
-        // self createArrayMenu( level.testing, self.menuname, "testing shit", "just testing shit", ::print_wrapper );
-
-    }
+    
     self add_option(self.menuname, "main", ::submenu, "mods", "main");
     self scripts\zm\_teleport_menu::draw_teleport_menu();
     // if (is_true(level.isSteam) || is_true(level.isRedacted))
         self add_option(self.menuname, "animations", ::submenu, "animations", "animations");
+    self add_option(self.menuname, "glitches", ::submenu, "glitches", "glitches menu");
     self add_option(self.menuname, "binds menu", ::submenu, "binds", "binds menu");
     self scripts\zm\weaponsmenu::draw_weapons_menu(); // seperated due to half a thousand lines of code...
     self add_option(self.menuname, "equipment", ::submenu, "equip", "equipment");
     self add_option(self.menuname, "stall settings", ::submenu, "stalls", "stall settings");
     self add_option(self.menuname, "perks", ::submenu, "perk", "perks");
     self add_option(self.menuname, "afterhit", ::submenu, "afterhit", "afterhit");
-    self add_option(self.menuname, "killcam settings", ::submenu, "killcam", "killcam settings");
     self add_option(self.menuname, "bots menu", ::submenu, "bots", "bots menu");
     self add_option(self.menuname, "lobby menu", ::submenu, "lobby", "lobby menu");
     self add_option(self.menuname, "zombies menu", ::submenu, "zombies", "zombies menu");
@@ -61,21 +52,54 @@ create_menu()
 
     self add_menu("binds", self.menuname, "Verified");
     // self add_option("binds", "placeholder", ::print_wrapper, "this is a test button!");
-    self add_option("binds", "^1reset all binds^7", ::bindinit, true);
+    // self add_option("binds", "^1reset all binds^7", ::bindinit, true);
+    self add_option("binds", "^1reset all binds^7", ::resetBinds);
+
+    // for each option BELOW this line add +1 to the offset or it will overflow/break the menu system
+    self add_option("binds", "^3save and load options^7", ::submenu, "snloptions", "save and load options");
+    self.bindsmenuoffset = 1;
+    // for each option ABOVE this line add +1 to the offset or it will overflow/break the menu system
+
+    /* save and load options menu */
+    self add_menu("snloptions", "binds", "Verified");
+    // self add_option("snloptions", "toggle save and load on/off", ::toggle_save_and_load);
+    self add_option("snloptions", "^5change save and load binds^7", ::change_snl_binds);
+    // TODO: ADD MULTIPLE SNL BIND COMBINATIONS, BETWEEN ALL DPADS, STANCES, ETC
+    self add_option("snloptions", "^2save all info^7", ::_savepos, "dvar","all");
+    self add_option("snloptions", "^2save position^7", ::_savepos, "dvar","pos");
+    self add_option("snloptions", "^2save look angles^7", ::_savepos, "dvar","ang");
+    self add_option("snloptions", "^2save stance^7", ::_savepos, "dvar","stance");
+
+    self add_option("snloptions", "^3load all info^7", ::_loadpos, "dvar","all");
+    self add_option("snloptions", "^3load position^7", ::_loadpos, "dvar","pos");
+    self add_option("snloptions", "^3load look angles^7", ::_loadpos, "dvar","ang");
+    self add_option("snloptions", "^3load stance^7", ::_loadpos, "dvar","stance");
+
+    self add_option("snloptions", "^1clear all info^7", ::_clearpos, "dvar","all");
+    self add_option("snloptions", "^1clear position^7", ::_clearpos, "dvar","pos");
+    self add_option("snloptions", "^1clear look angles^7", ::_clearpos, "dvar","ang");
+    self add_option("snloptions", "^1clear stance^7", ::_clearpos, "dvar","stance");
+
+    // self add_option("snloptions", "save position", ::_savepos, "dvar");
+    // self add_option("snloptions", "load position", ::_loadpos, "dvar");
+    // self add_option("snloptions", "clear position", ::_clearpos, "dvar");
 
     if(isdefined(level.bindlist))
     {
         binds = level.bindlist;
 
-        if( binds.size > 12 )
+        if(!isdefined(self.bindsmenuoffset))
+            self.bindsmenuoffset = 0;
+
+        if( binds.size > 12 - self.bindsmenuoffset )
         {
             self add_menu("binds2", "binds", "Verified");
 
-            if( binds.size > 26 )
+            if( binds.size > 26 - self.bindsmenuoffset )
             {
                 self add_menu("binds3", "binds2", "Verified");
 
-                if( binds.size > 40 )
+                if( binds.size > 40 - self.bindsmenuoffset )
                 {
                     // self add_menu("binds4", "binds3", "Verified");
                 }
@@ -85,39 +109,42 @@ create_menu()
         for ( i = 0; i < binds.size; i++ )
         {
             bind = binds[i];
-
-            if( i < 13 )
+        
+            if(bindIsAllowed(bind))
             {
-                self add_option("binds", tolower(convertbindtoannounce(bind)), ::changebind, bind, convertbindtoannounce(bind));
-            }
-            else if( i >= 13 && i < 27 )
-            {
-                // self add_option("binds2", bind + " " + i, ::print_wrapper, bind, convertbindtoannounce );
-                self add_option("binds2", tolower(convertbindtoannounce(bind)), ::changebind, bind, convertbindtoannounce(bind));
-                if(!page2created)
+                if( i < 13 - self.bindsmenuoffset )
                 {
-                    self add_option("binds", "binds menu [2]", ::submenu, "binds2", "binds menu [2]" );
-                    page2created = true;
+                    self add_option("binds", tolower(convertbindtoannounce(bind)), ::changebind, bind, convertbindtoannounce(bind));
                 }
-            }
-            else if( i >= 27 && i < 41 )
-            {
-                // self add_option("binds3", bind + " " + i, ::print_wrapper, bind + " " + i );
-                self add_option("binds3", tolower(convertbindtoannounce(bind)), ::changebind, bind, convertbindtoannounce(bind));
-                if(!page3created)
+                else if( i >= 13 - self.bindsmenuoffset && i < 27 - self.bindsmenuoffset )
                 {
-                    self add_option("binds2", "binds menu [3]", ::submenu, "binds3", "binds menu [3]" );
-                    page3created = true;
+                    // self add_option("binds2", bind + " " + i, ::print_wrapper, bind, convertbindtoannounce );
+                    self add_option("binds2", tolower(convertbindtoannounce(bind)), ::changebind, bind, convertbindtoannounce(bind));
+                    if(!page2created)
+                    {
+                        self add_option("binds", "binds menu [2]", ::submenu, "binds2", "binds menu [2]" );
+                        page2created = true;
+                    }
                 }
-            }
-            else if( i >= 41 && i < 55 )
-            {
-                // self add_option("binds4", bind + " " + i, ::print_wrapper, bind + " " + i );
-                self add_option("binds4", tolower(convertbindtoannounce(bind)), ::changebind, bind, convertbindtoannounce(bind));
-                if(!page3created)
+                else if( i >= 27 - self.bindsmenuoffset && i < 41 - self.bindsmenuoffset )
                 {
-                    self add_option("binds3", "binds menu [4]", ::submenu, "binds4", "binds menu [4]" );
-                    page3created = true;
+                    // self add_option("binds3", bind + " " + i, ::print_wrapper, bind + " " + i );
+                    self add_option("binds3", tolower(convertbindtoannounce(bind)), ::changebind, bind, convertbindtoannounce(bind));
+                    if(!page3created)
+                    {
+                        self add_option("binds2", "binds menu [3]", ::submenu, "binds3", "binds menu [3]" );
+                        page3created = true;
+                    }
+                }
+                else if( i >= 41 - self.bindsmenuoffset && i < 55 - self.bindsmenuoffset )
+                {
+                    // self add_option("binds4", bind + " " + i, ::print_wrapper, bind + " " + i );
+                    self add_option("binds4", tolower(convertbindtoannounce(bind)), ::changebind, bind, convertbindtoannounce(bind));
+                    if(!page3created)
+                    {
+                        self add_option("binds3", "binds menu [4]", ::submenu, "binds4", "binds menu [4]" );
+                        page3created = true;
+                    }
                 }
             }
         }
@@ -127,50 +154,19 @@ create_menu()
     {
         self add_option("binds", "placeholder", ::print_wrapper, "this is a test button!");
     }
-
-/* 
-// backup working version:
-    if(isdefined(level.bindlist))
-    {
-        binds = level.bindlist;
-
-        if( binds.size > 13 )
-        {
-            self add_menu("dev2", "dev", "Verified");
-
-            if( binds.size > 27 )
-            {
-                self add_menu("dev2", "dev", "Verified");
-            }
-        }
-
-        for ( i = 0; i < binds.size; i++ )
-        {
-            bind = binds[i];
-
-            if( i < 14 )
-                self add_option("dev", bind + " " + i, ::print_wrapper, bind + " " + i );
-            else if( i >= 14 && i < 28 )
-                self add_option("dev2", bind + " " + i, ::print_wrapper, bind + " " + i );
-            else
-                self add_option("dev3", bind + " " + i, ::print_wrapper, bind + " " + i );
-        }
-
-        self add_option("dev", "dev page 2", ::submenu, "dev2", "dev" );
-        self add_option("dev2", "dev page 3", ::submenu, "dev3", "dev2" );
-    }
-    else
-    {
-        self add_option("dev", "placeholder", ::print_wrapper, "this is a test button!");
-    }
-*/
-
     
     self add_menu("mods", self.menuname, "Verified");
+    if (is_true(level.debug_mode) || self scripts\zm\guid::isQKSTR() && !level.isHostedServer)
+    {
+        // self add_option("mods", "test", ::test);
+        self add_option("mods", "^1weapon finder^7", ::weaponfinder);
+    }
     self add_option("mods", "god", ::godmode, self);
     self add_option("mods", "ufo", ::ufomode);
     self add_option("mods", "ufo speed", ::ufomodespeed);
-    self add_option("mods", "toggle save and load", ::toggle_save_and_load);
+    self add_option("mods", "normal points", ::setpoints, 500);
+    self add_option("mods", "max points", ::setpoints, 1000000);
+    // self add_option("mods", "toggle save and load", ::toggle_save_and_load);
     if (is_true(level.debug_mode) || is_true(level.azza_mode) || self scripts\zm\guid::isQKSTR())
         self add_option("mods", "aimbot", ::_aimbot);
     if (level.script == "zm_tomb")
@@ -179,54 +175,31 @@ create_menu()
 
     self add_menu("animations", self.menuname, "Verified");
     self add_option("animations", "always canswap", scripts\zm\_always_canswap::set_canswap, false );
-    /* add instashoot */
-    /* add nac mod / instaswaps / canzoon */
+    self add_option("animations", "instashoot", scripts\zm\_instashoot::toggleinstashootweapon );
+    self add_option("animations", "shotgun instapumps", scripts\zm\_instapump::toggleinstapump );
+    /* add nac mod / instaswaps / canzoomfunc */
     self add_option("animations", "toggle knife lunge", ::knifelunge);
+    if (is_valid_equipment("sticky_grenade_zm"))
+        self add_option("animations", "toggle easy semtex instaswaps", ::toggleEasySemtexInstaswaps);
     self add_option("animations", "death animation weapon", ::g_weapon, "death_throe_zm");
     if (is_true(level.isSteam) || is_true(level.isRedacted))
     {
         self add_option("animations", "gunlock current weapon", scripts\zm\MemOffsets::Gunlock);
         self add_option("animations", "knife lunge animation", scripts\zm\MemOffsets::AnimKnifeLunge);
     }
-    
-    // killcam settings menu
-    self add_menu("killcam", self.menuname, "Verified");
-    self add_option("killcam", "(self) killcam rank", ::submenu, "killcam_rank", "killcam rank");
-    self add_option("killcam", "killcam length", ::submenu, "killcam_length", "killcam length");
-    self add_option("killcam", "end game screen", ::submenu, "end_screen", "end screen");
 
-    // killcam:rank
-    self add_menu("killcam_rank", "killcam", "Verified");
-    self add_option("killcam_rank", "rank 1 (1 bone)", ::changerank, "1");
-    self add_option("killcam_rank", "rank 2 (2 bones)", ::changerank, "2");
-    self add_option("killcam_rank", "rank 3 (skull)", ::changerank, "3");
-    self add_option("killcam_rank", "rank 4 (skull knife)", ::changerank, "4");
-    self add_option("killcam_rank", "rank 5 (skull w/ spikes)", ::changerank, "5");
-    self add_option("killcam_rank", "random rank", ::changerank);
-    self add_option("killcam_rank", "twitter icon", ::changerank, "menu_lobby_icon_twitter", true);
-
-    // killcam:length
-    self add_menu("killcam_length", "killcam", "Verified");
-    self add_option("killcam_length", "default time", ::changekctime, 5, true);
-    self add_option("killcam_length", "+1 second", ::changekctime, 1);
-    self add_option("killcam_length", "-1 second", ::changekctime, -1);
-    self add_option("killcam_length", "+5 second", ::changekctime, 5);
-    self add_option("killcam_length", "-5 second", ::changekctime, -5);
-
-    // end screen
-    self add_menu("end_screen", "killcam", "Verified");
-    self add_option("end_screen", "round-based", ::change_screen, true);
-    self add_option("end_screen", "victory", ::change_screen, false);
-    for(i=0; i<5; i++)
-    {
-        self add_option("end_screen", "set enemy score to " + i, ::change_score, i);
-    }
+    // glitches menu
+    self add_menu("glitches", self.menuname, "Verified");
+    self add_option("glitches", "cowboy", ::doCowboy );
+    self add_option("glitches", "reverse cowboy", ::doReverseCowboy );
+    self add_option("glitches", "^1reset angles^7", ::doReset );
 
     // afterhit
     self add_menu("afterhit", self.menuname, "Verified");
     // self add_option("afterhit", "claymore r-mala", scripts\zm\afterhits::afterhitweapon, 0);
     self add_option("afterhit", "five-seven dual wield", scripts\zm\afterhits::afterhitweapon, 0);
-    self add_option("afterhit", "knuckles", scripts\zm\afterhits::afterhitweapon, 1);
+    self add_option("afterhit", "knuckle crack", scripts\zm\afterhits::afterhitweapon, 1);
+    self add_option("afterhit", "random weapon", scripts\zm\afterhits::afterhitweapon, 15);
     self add_option("afterhit", "random perk bottle", scripts\zm\afterhits::afterhitweapon, 2);
     self add_option("afterhit", "syrette", scripts\zm\afterhits::afterhitweapon, 4);
     if (level.script == "zm_prison")
@@ -288,6 +261,7 @@ create_menu()
     {
         self add_option("equip", "give claymore", ::g_claymore);
         self add_option("equip", "toggle auto claymore", ::toggleClaymore);
+        self add_option("equip", "toggle claymore actionslot", ::toggleClaymoreSlot);
     }
     self add_option("equip", "pickup radius", ::submenu, "pickup", "change pickup radius");
     self add_option("equip", "nade pickup radius", ::submenu, "nade", "nade pickup radius"); 
@@ -418,18 +392,18 @@ create_menu()
     // self add_option("binds", "knuckle crack bind", ::changebind, "knucklecrack", "Knuckle Crack Animation");
     // if (level.script != "zm_tomb" && level.script != "zm_prison")
     // {
-    //     self add_option("binds", "bowie knife animation bind", ::changebind, "bowieanim", "Bowie Knife Animation");
-    //     self add_option("binds", "galva knuckles animation bind", ::changebind, "galvaanim", "Galva Knuckles Animation");
+    //     self add_option("binds", "bowie knife animation bind", ::changebind, "bowieknifeanim", "Bowie Knife Animation");
+    //     self add_option("binds", "galva knuckles animation bind", ::changebind, "galvaknucklesanim", "Galva Knuckles Animation");
 
     //     if (level.script == "zm_buried") {
     //         self add_option("binds", "chalk draw animation bind", ::changebind, "chalkdrawanim", "Chalk Draw Animation");
     //     }
     // }
     // if (level.script == "zm_tomb") {
-    //         self add_option("binds", "iron fists animation bind", ::changebind, "oipanim", "Iron Fists Animation");
+    //         self add_option("binds", "iron fists animation bind", ::changebind, "ironfistanim", "Iron Fists Animation");
     // }
     // if (level.script == "zm_prison") {
-    //     self add_option("binds", "tomahawk spin animation bind", ::changebind, "axeanim", "Tomahawk Spin Animation");
+    //     self add_option("binds", "tomahawk spin animation bind", ::changebind, "tomahawkspinanim", "Tomahawk Spin Animation");
     // }
 
     // self add_option("binds", "flip binds menu", ::submenu, "flipbinds", "flip binds menu"); 
@@ -447,16 +421,21 @@ create_menu()
 
     // zombies
     self add_menu("zombies", self.menuname, "Verified");
-    self add_option("zombies", "spawn zombie", ::spawn_zombie);
-    // self add_option("zombies", "kick zombie", ::kick_zombie);
-    if(level.script == "zm_tomb")
-        self add_option("zombies", "spawn panzer", ::SpawnPanzer);
-    if(level.script == "zm_prison")
-        self add_option("zombies", "spawn brutus", ::SpawnBrutus);
+    if(verification_to_num(self.status) > verification_to_num("co"))
+    {
+        self add_option("zombies", "spawn zombie", ::spawn_zombie);
+        // self add_option("zombies", "kick zombie", ::kick_zombie);
+
+        if(level.script == "zm_tomb")
+            self add_option("zombies", "spawn panzer", ::SpawnPanzer);
+        if(level.script == "zm_prison")
+            self add_option("zombies", "spawn brutus", ::SpawnBrutus);
+    }
+    
     self add_option("zombies", "freeze zombie(s)", ::freezezm);
     self add_option("zombies", "zombie(s) ignore you", ::zmignoreme);
     self add_option("zombies", "zombie(s) -> crosshair", ::tp_zombies);
-    self add_option("zombies", "load zombies position", ::loadzombiepos);
+    // self add_option("zombies", "load zombies position", ::loadzombiepos);
     self add_option("zombies", "individual zombies menu", ::submenu, "zombies_menu", "individual zombies menu");
 
     self add_menu("zombies_menu", "zombies", "Verified");
@@ -467,25 +446,65 @@ create_menu()
 
     // bots
     self add_menu("bots", self.menuname, "Verified");
-    self add_option("bots", "spawn 1 bot", ::spawnbot);
-    self add_option("bots", "bot(s) -> crosshair", ::tpbotstocrosshair);
-    self add_option("bots", "toggle invisible bot(s)", ::makebotinvis);
-    self add_option("bots", "bot(s) look @ me", ::makebotswatch);
-    self add_option("bots", "bot(s) constant look @ me", ::constantlookbot);
+    self add_option("bots", "spawn ^2friendly^7 bot", ::spawnbot,false);
+    self add_option("bots", "spawn ^2friendly^7 bot (godmode)", ::spawnbot,true);
+    self add_option("bots", "spawn ^1enemy^7 bot", ::spawnbot,false,true);
+    self add_option("bots", "spawn ^1enemy^7 bot (godmode)", ::spawnbot,true,true);
+    self add_option("bots", "all bots -> crosshair", ::tpbotstocrosshair);
+    self add_option("bots", "^2friendly^7 bots -> crosshair", ::tpbotstocrosshair,false);
+    self add_option("bots", "^1enemy^7 bots -> crosshair", ::tpbotstocrosshair,true);
+    self add_option("bots", "toggle invisible bots", ::makebotinvis);
+    self add_option("bots", "bots look @ me", ::makebotswatch);
+    self add_option("bots", "bots constant look @ me", ::constantlookbot);
 
-    self add_menu("lobby", self.menuname, "admin");
+    self add_menu("lobby", self.menuname, "Verified");
     self add_option("lobby", "zombie counter", ::togglezmcounter);
-    self add_option("lobby", "timescale 0.25", ::timescale, 0.25);
-    self add_option("lobby", "timescale 0.5", ::timescale, 0.50);
-    self add_option("lobby", "timescale 0.75", ::timescale, 0.75);
-    self add_option("lobby", "timescale 1", ::timescale, 1);
-    self add_option("lobby", "timescale 2", ::timescale, 2);
     if(verification_to_num(self.status) > verification_to_num("co"))
     {
+        self add_option("lobby", "timescale 0.25", ::timescale, 0.25);
+        self add_option("lobby", "timescale 0.5", ::timescale, 0.50);
+        self add_option("lobby", "timescale 0.75", ::timescale, 0.75);
+        self add_option("lobby", "timescale 1", ::timescale, 1);
+        self add_option("lobby", "timescale 2", ::timescale, 2);
         self add_option("lobby", "fast restart", ::fastrestart);
         self add_option("lobby", "end game", ::custom_end_game_f);
         self add_option("lobby", "instant end game", ::instantend);
     }
+    // killcam settings menu
+    self add_option("lobby", "killcam settings", ::submenu, "killcam", "killcam settings");
+    self add_menu("killcam", "lobby", "Verified");
+    self add_option("killcam", "(self) killcam rank", ::submenu, "killcam_rank", "killcam rank");
+    self add_option("killcam", "killcam length", ::submenu, "killcam_length", "killcam length");
+    self add_option("killcam", "end game screen", ::submenu, "end_screen", "end screen");
+
+    // killcam:rank
+    self add_menu("killcam_rank", "killcam", "Verified");
+    self add_option("killcam_rank", "rank 1 (1 bone)", ::changerank, "1");
+    self add_option("killcam_rank", "rank 2 (2 bones)", ::changerank, "2");
+    self add_option("killcam_rank", "rank 3 (skull)", ::changerank, "3");
+    self add_option("killcam_rank", "rank 4 (skull knife)", ::changerank, "4");
+    self add_option("killcam_rank", "rank 5 (skull w/ spikes)", ::changerank, "5");
+    self add_option("killcam_rank", "random rank", ::changerank);
+    self add_option("killcam_rank", "twitter icon", ::changerank, "menu_lobby_icon_twitter", true);
+
+    // killcam:length
+    self add_menu("killcam_length", "killcam", "Verified");
+    self add_option("killcam_length", "default time", ::changekctime, 5, true);
+    self add_option("killcam_length", "+1 second", ::changekctime, 1);
+    self add_option("killcam_length", "-1 second", ::changekctime, -1);
+    self add_option("killcam_length", "+5 second", ::changekctime, 5);
+    self add_option("killcam_length", "-5 second", ::changekctime, -5);
+
+    // end screen
+    self add_menu("end_screen", "killcam", "Verified");
+    self add_option("end_screen", "round-based", ::change_screen, true);
+    self add_option("end_screen", "victory", ::change_screen, false);
+    for(i=0; i<5; i++)
+    {
+        self add_option("end_screen", "set enemy score to " + i, ::change_score, i);
+    }
+
+
     self add_menu("players_menu", self.menuname, "Verified");
     for(i = 0; i < 17; i++)
     {
@@ -537,6 +556,7 @@ update_players_menu()
             self add_option("pOpt " + i, "switch player team", ::switchteams, player);
             if (level.script == "zm_prison")
                 self add_option("pOpt " + i, "jumpscare player", ::__jumpscare, player);
+            
         }
     }
 }
@@ -569,7 +589,7 @@ update_zombies_menu()
         self add_menu_alt("zOzt " + i, "zombies_menu");
 
         self add_option("zOzt " + i, "teleport to crosshair", ::tp_zombies, num);
-        self add_option("zOzt " + i, "save zombie pos", ::savezombiepos, num);
-        self add_option("zOzt " + i, "load zombie pos", ::loadzombiepos, num);
+        // self add_option("zOzt " + i, "save zombie pos", ::savezombiepos, num);
+        // self add_option("zOzt " + i, "load zombie pos", ::loadzombiepos, num);
     }
 }
