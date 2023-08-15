@@ -16,15 +16,13 @@ set_canswap( threadFuncs )
         self notify("stopalwayscanswapallloop");
         self setPlayerCustomDvar("canswapweap", b);
         self setPlayerCustomDvar("canswapweapfull", self getCurrentWeapon());
-        // self setPlayerCustomDvar("canswapweap", self getCurrentWeapon());
         self setClientDvar("canswapweap", "[" + b + "]");
         self setClientDvar("canswapweapfull", "[" + self getCurrentWeapon() + "]");
-        // self setClientDvar("canswapweap", "[" + self getCurrentWeapon() + "]");
 
         if(threadFuncs)
             self thread alwayscanswapspecificloop();
 
-        self iPrintLn("Always Canswap: " + getPlayerCustomDvar("canswapweap"));
+        self iPrintLn("Always Canswap: " + "["+getPlayerCustomDvar("canswapweap")+"]");
         
     }
     else if(self getPlayerCustomDvar("canswapweap") == "all")
@@ -34,7 +32,7 @@ set_canswap( threadFuncs )
         
         self setPlayerCustomDvar("canswapweap","none");
         self setClientDvar("canswapweap","[none]");
-        self iPrintLn("Always Canswap: " + getPlayerCustomDvar("canswapweap"));
+        self iPrintLn("Always Canswap: " + "["+getPlayerCustomDvar("canswapweap")+"]");
     }
     else if(self getPlayerCustomDvar("canswapweap") != "none")
     {
@@ -44,7 +42,7 @@ set_canswap( threadFuncs )
         if(threadFuncs)
             self thread alwayscanswapallloop();
 
-        self iPrintLn("Always Canswap: " + getPlayerCustomDvar("canswapweap"));
+        self iPrintLn("Always Canswap: " + "["+getPlayerCustomDvar("canswapweap")+"]");
     }
 }
 
@@ -54,14 +52,11 @@ alwayscanswapspecificloop()
     self endon("stopalwayscanswapspecificloop");
     while(true)
     {
-        // self waittill("weapon_change");
-        // self waittill_any("weapon_change", "changed_class", "spawned_player");
     	event = self waittill_any_return( "weapon_change", "changed_class", "changed_kit", "spawned_player" );
 
         x = self getCurrentWeapon();
         b = maps\mp\zombies\_zm_weapons::get_base_name(self getCurrentWeapon());
         z = self getPlayerCustomDvar("canswapweapfull");
-        // z = self getPlayerCustomDvar("canswapweap");
 
         if( event != "weapon_change" )
             wait 0.2;
@@ -79,8 +74,6 @@ alwayscanswapallloop()
     self endon("stopalwayscanswapallloop");
     while(true)
     {
-        // self waittill("weapon_change");
-        // self waittill_any("weapon_change", "changed_class", "spawned_player");
     	event = self waittill_any_return( "weapon_change", "changed_class", "changed_kit", "spawned_player" );
 
         x = self getCurrentWeapon();
@@ -104,7 +97,6 @@ canswaps()
     for(;;)
     {
         self waittill("weapon_change");
-        // self waittill_any("weapon_change", "grenade_fire", "grenade_pullback" );
         if(self getPlayerCustomDvar("canswapweap") == "all")
         {
             x = self getCurrentWeapon();
@@ -165,7 +157,6 @@ canswaps()
                 self takeWeaponGood(z);
                 self giveWeaponGood(z);
                 self smooth();
-                // self iPrintLn(self getnextweapon());
             }
             else if(x != z && self hasWeapon(z))
             {
@@ -196,40 +187,3 @@ canswaps()
         }
     }
 }
-
-
-// canswaps()
-// {
-//     for(;;)
-//     {
-//         self waittill("weapon_change");
-//         if(getDvar("canswapweap") == "all")
-//         {
-//             x = self getCurrentWeapon();
-//             z = self getWeaponsListPrimaries();
-//             weaps = self getweaponslist();
-
-//             for (i = 0; i < zs.size; i++)
-//             {
-//                 z = zs[i];
-//             foreach(gun in z)
-//             {
-//                 if(x != gun)
-//                 {
-//                     self takeWeaponGood(gun);
-//                     self giveWeaponGood();
-//                 }
-//             }
-//         }
-//         if(getDvar("canswapweap") != "all" && getDvar("canswapweap") != "none")
-//         {
-//             x = self getCurrentWeapon();
-//             z = getDvar("canswapweap");
-//             if(x != z && self hasWeapon(z))
-//             {
-//                 self takeWeaponGood(z);
-//                 self giveWeaponGood();
-//             }
-//         }
-//     }
-// }
