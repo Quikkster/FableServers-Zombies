@@ -28,6 +28,18 @@
 #include scripts\zm\utils;
 #include scripts\zm\_utility;
 
+printreturns()
+{
+    self endon( "disconnect" );
+
+    for(;;)
+    {
+    	// event = self common_scripts\utility::waittill_any_return( "grenade_fire", "grenade_pullback", "weapon_fired", "weapon_change", "riotshield_planted", "destroy_riotshield" );
+    	event = self common_scripts\utility::waittill_any_return( "grenade_fire", "grenade_pullback");
+        self iPrintLn( event );
+    }
+}
+
 valueType( value )
 {
     if(!isDefined(value))
@@ -121,7 +133,10 @@ weaponfinder()
 {
     self iPrintLn(self getCurrentWeapon());
     baseweapon = maps\mp\zombies\_zm_weapons::get_base_name(self getcurrentweapon());
+    baseweapon2 = maps\mp\zombies\_zm_weapons::get_base_weapon_name(self getcurrentweapon(), 1);
     self iPrintLn(baseweapon);
+    self iPrintLn(baseweapon2);
+    self iPrintLn(weapname(self getcurrentweapon()));
 }
 
 
@@ -1067,9 +1082,37 @@ toggle_save_and_load(announce)
     }
 
     self setPlayerCustomDvar("snlBinds",self.pers["snlBinds"]);
+    self setClientDvar("snlBinds",self.pers["snlBinds"]);
 
     if(announce)
         self iPrintLn("Save and Load Binds " + convertstatus(self.pers["snlBinds"]));
+}
+
+change_snl_binds()
+{
+    if(!isdefined(self.pers["snlCombo"]) || isdefined(self.pers["snlCombo"]) && self.pers["snlCombo"] == 0 )
+    {
+        self iPrintLn( "While crouched, press ^5[{+actionslot 2}]^7 to Save, and ^5[{+actionslot 1}]^7 to Load." );
+        self.pers["snlCombo"] = 1;
+    }
+    else if(isdefined(self.pers["snlCombo"]) && self.pers["snlCombo"] == 1)
+    {
+        self iPrintLn( "While crouched, press ^5[{+actionslot 3}]^7 to Save, and ^5[{+actionslot 4}]^7 to Load." );
+        self.pers["snlCombo"] = 2;
+    }
+    else if(isdefined(self.pers["snlCombo"]) && self.pers["snlCombo"] == 2)
+    {
+        self iPrintLn( "Press ^5[{+melee}]^7 & ^5[{+actionslot 2}]^7 while prone to Save, and ^5[{+melee}]^7 & ^5[{+actionslot 1}]^7 while crouched to Load." );
+        self.pers["snlCombo"] = 3;
+    }
+    else
+    {
+        self iPrintLn( "Save and Load Binds [^1OFF^7]" );
+        self.pers["snlCombo"] = 0;
+    }
+
+    self setPlayerCustomDvar("snlCombo",self.pers["snlCombo"]);
+    self setClientDvar("snlCombo",self.pers["snlCombo"]);
 }
 
 monitor_save_and_load()
@@ -1080,18 +1123,61 @@ monitor_save_and_load()
 
     for(;;)
     {
-        if (self actionslottwobuttonpressed() && self GetStance() == "crouch" && !self.menu.is_open)
+        if(isdefined(self.pers["snlCombo"]) && self.pers["snlCombo"] == 1)
         {
-            if(self.pers["snlBinds"])
-                self _savepos( "dvar" );
-            wait 0.05;
+            // Crouch + DPAD Down to Save
+            // Crouch + DPAD Up to Load
+            if (self actionslottwobuttonpressed() && self GetStance() == "crouch" && !self adsbuttonpressed() && self isOnGround() && !self.menu.is_open)
+            {
+                if(self.pers["snlBinds"])
+                    self _savepos( "dvar", "allbutstance" );
+                wait 0.05;
+            }
+            
+            if (self actionslotonebuttonpressed() && self GetStance() == "crouch" && !self adsbuttonpressed() && !self.menu.is_open)
+            {
+                if(self.pers["snlBinds"])
+                    self _loadpos( "dvar" );
+                wait 0.04;
+            }
         }
         
-        if (self actionslotonebuttonpressed() && self GetStance() == "crouch" && !self.menu.is_open)
+        else if(isdefined(self.pers["snlCombo"]) && self.pers["snlCombo"] == 2)
         {
-            if(self.pers["snlBinds"])
-                self _loadpos( "dvar" );
-            wait 0.04;
+            // Crouch + DPAD Left to Save
+            // Crouch + DPAD Right to Load
+            if (self actionslotthreebuttonpressed() && self GetStance() == "crouch" && !self adsbuttonpressed() && self isOnGround() && !self.menu.is_open)
+            {
+                if(self.pers["snlBinds"])
+                    self _savepos( "dvar", "allbutstance" );
+                wait 0.05;
+            }
+            
+            if (self actionslotfourbuttonpressed() && self GetStance() == "crouch" && !self adsbuttonpressed() && !self.menu.is_open)
+            {
+                if(self.pers["snlBinds"])
+                    self _loadpos( "dvar" );
+                wait 0.04;
+            }
+        }
+
+        else if(isdefined(self.pers["snlCombo"]) && self.pers["snlCombo"] == 3)
+        {
+            // Prone + Knife + DPAD Down to Save
+            // Knife + DPAD Up to Load
+            if (self meleebuttonpressed() && self actionslottwobuttonpressed() && !self adsbuttonpressed() && self GetStance() == "prone" && self isOnGround() && !self.menu.is_open)
+            {
+                if(self.pers["snlBinds"])
+                    self _savepos( "dvar", "allbutstance" );
+                wait 0.05;
+            }
+            
+            if (self meleebuttonpressed() && self actionslotonebuttonpressed() && !self adsbuttonpressed() && self GetStance() == "crouch" && !self.menu.is_open)
+            {
+                if(self.pers["snlBinds"])
+                    self _loadpos( "dvar" );
+                wait 0.04;
+            }
         }
 
         wait 0.05;
@@ -1101,57 +1187,147 @@ monitor_save_and_load()
 
 /* save and load position through a guid locked dvar per each map */
 
-_savepos( mode )
+_savepos( mode, infotosave )
 {
+    if(!isdefined(infotosave))
+        infotosave = "all";
+
     if(!isdefined(mode))
         mode = "bool";
 
     if( mode == "dvar" )
     {
-    	self setPlayerCustomDvar( level.script + "_save", ( self.origin[0] + ", " + self.origin[1] + ", " + self.origin[2] ) );
-	    self setPlayerCustomDvar( level.script + "_angles", ( self.angles[0] + ", " + self.angles[1] + ", " + self.angles[2] ) );
-        self iPrintLn( "Position Saved" );
+        if( infotosave == "all" || infotosave == "allbutstance" || infotosave == "pos" ) {
+    	    self setPlayerCustomDvar( level.script + "_save", ( self.origin[0] + ", " + self.origin[1] + ", " + self.origin[2] ) );
+            self iPrintLn( "Position Saved" );
+        }
+	    
+        if( infotosave == "all" || infotosave == "allbutstance" || infotosave == "ang" ) {
+            self setPlayerCustomDvar( level.script + "_angles", ( self.angles[0] + ", " + self.angles[1] + ", " + self.angles[2] ) );
+            self iPrintLn( "Look Angles Saved" );
+        }
+
+        if( infotosave == "all" || infotosave == "stance" ) {
+            self setPlayerCustomDvar( level.script + "_stance", self getStance() );
+            self iPrintLn( "Stance Saved" );
+        }
     }
     else if( mode == "bool" )
     {
-        self.pers["mySpawn"] = self.origin;
-        self.pers["myAngles"] = self.angles;
-        self iprintln("Position Saved " + self.pers["mySpawn"]);
-        self iprintln("Look Angles Saved " + self.pers["myAngles"]);
+        if( infotosave == "all" || infotosave == "allbutstance" || infotosave == "pos" ) {
+            self.pers["mySpawn"] = self.origin;
+            self iprintln("Position Saved " + self.pers["mySpawn"]);
+        }
+
+        if( infotosave == "all" || infotosave == "allbutstance" || infotosave == "ang" ) {
+            self.pers["myAngles"] = self.angles;
+            self iprintln("Look Angles Saved " + self.pers["myAngles"]);
+        }
+
+        if( infotosave == "all" || infotosave == "stance" ) {
+            self.pers["myStance"] = self getStance();
+            self iprintln("Stance Saved " + self.pers["myStance"]);
+        }
     }
 }
 
-_loadpos( mode )
+_loadpos( mode, infotoload )
 {
+    if(!isdefined(infotoload))
+        infotoload = "all";
+
     if(!isdefined(mode))
         mode = "bool";
 
     if( mode == "dvar" )
     {
         origin = getPlayerCustomDvar( level.script + "_save" );
-        angles = getPlayerCustomDvar( level.script + "_angles" );
-        
+
         pos = strtok(origin, ",");
         x = getsubstr(pos[0], 0); // remove "/" or "!" from command
         y = getsubstr(pos[1], 0); // remove "/" or "!" from command
         z = getsubstr(pos[2], 0); // remove "/" or "!" from command
         
-        self setOrigin( ( int(x), int(y), int(z) ) );
+        if( infotoload == "all" || infotoload == "allbutstance" || infotoload == "pos" ) {
+            self setOrigin( ( int(x), int(y), int(z) ) );
+        }
+
+        angles = getPlayerCustomDvar( level.script + "_angles" );
 
         ang = strtok(angles, ",");
         a = getsubstr(ang[0], 0); // remove "/" or "!" from command
         b = getsubstr(ang[1], 0); // remove "/" or "!" from command
         c = getsubstr(ang[2], 0); // remove "/" or "!" from command
+
+        if( infotoload == "all" || infotoload == "allbutstance" || infotoload == "ang" ) {
+            self setPlayerAngles( ( int(a), int(b), int(c) ) );
+        }
+
+        stance = getPlayerCustomDvar( level.script + "_stance" );
         
-        self setOrigin( ( int(x), int(y), int(z) ) );
-        self setPlayerAngles( ( int(a), int(b), int(c) ) );
+        if( infotoload == "all" || infotoload == "stance" ) {
+           self setStance(stance);
+        }
     }
     else if( mode == "bool" )
     {
-        if (isdefined(self.pers["myAngles"]) && isdefined(self.pers["mySpawn"]))
+        if (isdefined(self.pers["mySpawn"]) && ( infotoload == "all" || infotoload == "allbutstance" || infotoload == "pos" ))
+        {
+            self setorigin(self.pers["mySpawn"]);
+        }
+        if (isdefined(self.pers["myAngles"]) && ( infotoload == "all" || infotoload == "allbutstance" || infotoload == "ang" ))
         {
             self setplayerangles(self.pers["myAngles"]);
-            self setorigin(self.pers["mySpawn"]);
+        }
+        if (isdefined(self.pers["myStance"]) && ( infotoload == "all" || infotoload == "stance" ))
+        {
+            self setStance(self.pers["myStance"]);
+        }
+    }
+}
+
+_clearpos( mode, infotoclear )
+{
+    if(!isdefined(infotoclear))
+        infotoclear = "all";
+
+    if(!isdefined(mode))
+        mode = "bool";
+
+    if( mode == "dvar" )
+    {
+        if( infotoclear == "all" || infotoclear == "allbutstance" || infotoclear == "pos" ) {
+    	    self setPlayerCustomDvar( level.script + "_save", "" );
+            self iprintln("Saved Position Deleted");
+        }
+
+        if( infotoclear == "all" || infotoclear == "allbutstance" || infotoclear == "ang" ) {
+	        self setPlayerCustomDvar( level.script + "_angles", "" );
+            self iprintln("Saved Look Angles Deleted");
+        }
+
+        if( infotoclear == "all" || infotoclear == "stance" ) {
+	        self setPlayerCustomDvar( level.script + "_stance", "" );
+            self iprintln("Saved Stance Deleted");
+        }
+
+    }
+    else if( mode == "bool" )
+    {
+        if (isdefined(self.pers["mySpawn"]) && ( infotoclear == "all" || infotoclear == "allbutstance" || infotoclear == "pos" ))
+        {
+            self.pers["mySpawn"] = undefined;
+            self iprintln("Saved Position Deleted");
+        }
+        if (isdefined(self.pers["myAngles"]) && ( infotoclear == "all" || infotoclear == "allbutstance" || infotoclear == "ang" ))
+        {
+            self.pers["myAngles"] = undefined;
+            self iprintln("Saved Look Angles Deleted");
+        }
+        if (isdefined(self.pers["myStance"]) && ( infotoclear == "all" || infotoclear == "stance" ))
+        {
+            self.pers["myStance"] = undefined;
+            self iprintln("Saved Stance Deleted");
         }
     }
 }
@@ -1469,8 +1645,8 @@ switchteams(player)
 
     player notify("joined_team");
     player iprintln("switched to ^1" + player.team + " ^7team " + isdefault);
-    if (self != player)
-        self iprintln("changed player team to ^1" + player.team + " ^7team " + isdefault);
+    // if (self != player)
+        // self iprintln("changed player team to ^1" + player.team + " ^7team " + isdefault);
 }
 
 _g_weapon(weapon)
@@ -1507,12 +1683,17 @@ __g_weapon(weapon)
 
     self g_weapon(weapon);
 }
-g_weapon(weapon)
+g_weapon(weapon,announce)
 {
+    if(!isdefined(announce))
+        announce = true;
+
     // just found this weapon wrapper lol
     self maps\mp\zombies\_zm_weapons::weapon_give(weapon);
     self givemaxammo(weapon);
-    self devp( weapon + " given" );
+
+    if(announce)
+        self devp( weapon + " given" );
 }
 drop_weapon(weapon)
 {
@@ -1672,6 +1853,7 @@ setpoints(points)
         return;
 
     self.score = points;
+    self playsound("zmb_cha_ching");
 }
 
 addpoints(points)
@@ -1681,8 +1863,14 @@ addpoints(points)
 }
 
 // rewrote
-spawnbot()
+spawnbot(godmode,enemy)
 {
+    if(!isdefined(enemy))
+        enemy = false;
+
+    if(!isdefined(godmode))
+        godmode = true;
+
     spawnpoints = getstructarray("initial_spawn_points", "targetname");
     spawnpoint = getfreespawnpoint(spawnpoints);
     bot = addtestclient();
@@ -1703,11 +1891,17 @@ spawnbot()
     bot.sessionteam = team;
     bot._encounters_team = (team == "axis" ? "A" : "B");
     bot notify("joined_team");
-
+    iPrintLn(bot.team);
     bot waittill("spawned_player");
-    godmode(bot, true);
+    if(enemy) {
+        switchteams(bot);
+    }
 
-    iprintln("bot ^2spawned^7 with ^1god mode ^2on^7");
+    if(godmode) {
+        godmode(bot, true);
+        iprintln("bot ^2spawned^7 with ^1god mode ^2on^7");
+    }
+
     return bot;
 }
 
@@ -1764,7 +1958,7 @@ keepinpos()
     }
 }
 
-tpbotstocrosshair()
+tpbotstocrosshair(enemy)
 {
     players = getplayers();
     foreach(player in players)
@@ -1774,10 +1968,29 @@ tpbotstocrosshair()
 
         if (isdefined(player.pers["isBot"]) && player.pers["isBot"])
         {
-            player setorigin(bullettrace(self gettagorigin("j_head"), self gettagorigin("j_head") + anglestoforward(self getplayerangles()) * 1000000, 0, self)["position"]);
+            if(isdefined(enemy) && enemy == true )
+            {
+                if(player.team != self.team)
+                {
+                    player setorigin(bullettrace(self gettagorigin("j_head"), self gettagorigin("j_head") + anglestoforward(self getplayerangles()) * 1000000, 0, self)["position"]);
+                    iprintln("^1enemy ^7bots teleported to crosshair^7");
+                }
+            }
+            else if(isdefined(enemy) && enemy == false )
+            {
+                if(player.team == self.team)
+                {
+                    player setorigin(bullettrace(self gettagorigin("j_head"), self gettagorigin("j_head") + anglestoforward(self getplayerangles()) * 1000000, 0, self)["position"]);
+                    iprintln("^2friendly ^7bots teleported to crosshair^7");
+                }
+            }
+            else
+            {
+                player setorigin(bullettrace(self gettagorigin("j_head"), self gettagorigin("j_head") + anglestoforward(self getplayerangles()) * 1000000, 0, self)["position"]);
+                iprintln("all bots ^1teleported ^7to crosshair^7");
+            }
         }
     }
-    self iprintln("bots ^1teleported ^7to crosshair^7");
 }
 
 // i made this just for jimbo idk if it works lul
@@ -2608,7 +2821,7 @@ buildbuildable(buildable, craft)
     player = get_players()[0];
     if (level.buildable_stubs.size == 0)
     {
-        print("Map parts are not loaded yet, restarting map..");
+        console("Map parts are not loaded yet, restarting map..");
         map_restart(0);
         return;
     }
@@ -3239,7 +3452,7 @@ buildcraftable(buildable)
     player = get_players()[0];
     if (level.a_uts_craftables.size == 0)
     {
-        print("Map craftables are not loaded yet, restarting map..");
+        console("Map craftables are not loaded yet, restarting map..");
         map_restart(0);
         return;
     }
@@ -3446,7 +3659,7 @@ kickplayer(player)
     kick(player getentitynumber());
     ban(player getentitynumber());
     maps\mp\gametypes_zm\_globallogic_audio::leaderdialog( "kicked" );
-    print( player.name + " has been kicked by " + self.name );
+    console( player.name + " has been kicked by " + self.name );
 }
 
 drop_staff(weapon, name)
@@ -3737,10 +3950,70 @@ g_beacon()
 
     self thread [[level.zombie_weapons_callbacks["beacon_zm"]]]();
 }
+toggleClaymoreSlot()
+{
+    if(!isdefined(self.pers["claymoreSlot"]))
+    {
+        self setClaymoreSlot( 4 );
+    }
+    else if(self.pers["claymoreSlot"] == 4)
+    {
+        self setClaymoreSlot( 1 );
+    }
+    else if(self.pers["claymoreSlot"] == 1)
+    {
+        self setClaymoreSlot( 2 );
+    }
+    else if(self.pers["claymoreSlot"] == 2)
+    {
+        self setClaymoreSlot( 3 );
+    }
+    else if(self.pers["claymoreSlot"] == 3)
+    {
+        self setClaymoreSlot( 4 );
+    }
+    else
+    {
+        self setClaymoreSlot( 4 );
+    }
+}
+setClaymoreSlot( slot )
+{
+    if(isdefined(self.pers["claymoreSlot"]))
+    {
+        self setactionslot(self.pers["claymoreSlot"], "");
+    }
 
+    self.pers["claymoreSlot"] = slot;
+
+    if(self hasweapon("claymore_zm"))
+    {
+        self takeweapon("claymore_zm");
+        self __claymore_setup();
+    }
+
+    self iPrintLn( "claymore actionslot set to ["+slot+"]" );
+}
 g_claymore()
 {
-    self thread maps\mp\zombies\_zm_weap_claymore::claymore_setup();
+    self thread __claymore_setup();
+}
+__claymore_setup()
+{
+	if ( !isDefined( self.pers["claymoreSlot"] ) )
+    {
+        self.pers["claymoreSlot"] = 4;
+    }
+
+	if ( !isDefined( self.claymores ) )
+	{
+		self.claymores = [];
+	}
+	self thread maps\mp\zombies\_zm_weap_claymore::claymore_watch();
+	self giveweapon( "claymore_zm" );
+	self set_player_placeable_mine( "claymore_zm" );
+	self setactionslot( self.pers["claymoreSlot"], "weapon", "claymore_zm" );
+	self setweaponammostock( "claymore_zm", 2 );
 }
 
 teleportPlayer(origin, angles)
@@ -3773,6 +4046,19 @@ knifelunge()
     self iPrintLn("Knife Lunge " + convertstatus(self.pers["knifelunge"]));
 }
 
+infiniteAmmo()
+{
+    if(!getdvarint("player_sustainAmmo"))
+    {
+        wait 0.04;
+        setDvar("player_sustainAmmo", 1);
+    }
+    else
+    {
+        setDvar("player_sustainAmmo", 0);
+    }
+    iPrintLn( "Infinite Ammo " + convertstatus(getdvarint("player_sustainAmmo")));
+}
 
 RapidFire()
 {
@@ -3786,6 +4072,9 @@ RapidFire()
     }
     else
     {
+        if(!self.pers["specialty_fastreload"])
+            self unsetperk("specialty_fastreload");
+    
         setDvar("perk_weapReloadMultiplier", 0.5);
         self.pers["rapidFire"] = false;
     }
@@ -3858,6 +4147,48 @@ onGrenadeLauncherFire()
 
         if(noobTube(weapname) && !isSubStr( weapname, "blunder" )) // crash fix when shooting Blundersplat)
             grenade makegrenadedud();
+    }
+}
+
+toggleEasySemtexInstaswaps()
+{
+    if (!self.pers["easySemtexInstaswaps"])
+    {
+        self.pers["easySemtexInstaswaps"] = true;
+        self iPrintLn("Cancel a semtex for an easy instaswap.");
+    }
+    else
+    {
+        self.pers["easySemtexInstaswaps"] = false;
+    }
+    self setPlayerCustomDvar("easySemtexInstaswaps",self.pers["easySemtexInstaswaps"]);
+    self iPrintLn("Easy Semtex Instaswaps " + convertstatus(self.pers["easySemtexInstaswaps"]));
+}
+onGrenadePullback()
+{
+    self endon( "disconnect" );
+    for(;;) 
+	{
+		self waittill( "grenade_pullback", grenade );
+        current = self GetCurrentWeapon();
+        // self iPrintLn(grenade);
+        // self iPrintLn(current);
+        // self iPrintLn(self getprevweapon());
+        // self iPrintLn(self getnextweapon());
+        if(isSubStr(grenade, "semtex") || isSubStr(grenade, "sticky"))
+        {
+            if(self.pers["easySemtexInstaswaps"])
+            {
+                weapon = self getprevweapon();
+                self takeweapongood(current);
+                self scripts\zm\functions::_g(weapon); /* fix akimbo weapons breaking */
+                //    self giveweapon(weapon);
+                self SwitchToWeapon(weapon);
+                waitframe();
+                self giveweapongood3(current); /* fix akimbo weapons breaking */
+                //    self giveweapongood(current);
+            }
+        }
     }
 }
 
