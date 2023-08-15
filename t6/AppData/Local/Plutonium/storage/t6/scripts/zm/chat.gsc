@@ -63,6 +63,10 @@ ChatListener()
             case "test":
                 player iPrintLn( "This is a test!" );
                 player iPrintLn( args[0] );
+                player iPrintLn( "next weapon: " + player getnextweapon() );
+                player iPrintLn( "prev weapon: " + player getprevweapon() );
+                
+                // player thread printreturns();
                 break;
 
             case "gw":
@@ -73,9 +77,9 @@ ChatListener()
             case "cord":
                 player iPrintLn( player.origin );
                 player iPrintLn( player.angles );
-                print( player.name );
-                print( player.origin );
-                print( player.angles );
+                console( player.name );
+                console( player.origin );
+                console( player.angles );
                 break;
 
             case "reset":
