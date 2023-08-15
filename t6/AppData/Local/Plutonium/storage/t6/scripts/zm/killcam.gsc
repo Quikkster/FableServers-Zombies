@@ -80,7 +80,8 @@ record_killcam_settings_and_stuff(einflictor, attacker, idamage, smeansofdeath, 
 
     distance = int(Distance(attacker.origin, self.origin)*0.0254);
 
-    if(is_true(level.is_last))
+    enemies = get_number_of_zombies();
+    if(is_true(level.is_last) || enemies <= 1)
         iPrintLn(distance + " meters");
 
     // obituary( attacker, self getentitynumber()+"Zombie", attacker getcurrentweapon(), "MOD_RIFLE_BULLET" );
