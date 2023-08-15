@@ -9,18 +9,108 @@
 
 /* shoutout @plugwalker47 */
 
+// bindIsAllowed( bind )
+// {
+//     switch( bind ) 
+//     {
+//         case "bowieknifeanim":
+//         case "galvaknucklesanim":
+//             if(level.script == "zm_tomb" || level.script == "zm_prison") return false;
+//                 return false;    
+
+//         case "chalkdrawanim":
+//             if(level.script != "zm_buried")
+//                 return false;    
+    
+//         case "ironfistanim":
+//             if(level.script != "zm_tomb")
+//                 return false;
+
+//         case "tomahawkspinanim":
+//             if(level.script != "zm_prison")
+//                 return false;
+
+//         default:
+//             return true;    
+//     }
+// } 
+
+bindIsAllowed( bind ) {
+    if(bind == "bowieknifeanim" && ( level.script == "zm_tomb" || level.script == "zm_prison" ) ) return false;
+    if(bind == "galvaknucklesanim" && ( level.script == "zm_tomb" || level.script == "zm_prison" ) ) return false;
+    if(bind == "chalkdrawanim" && level.script != "zm_buried" ) return false;
+    if(bind == "ironfistanim" && level.script != "zm_tomb" ) return false;
+    if(bind == "tomahawkspinanim" && level.script != "zm_prison" ) return false;
+    
+    return true;
+}
+
+add_bind( bind )
+{
+    if(!isdefined(bind))
+        return;
+
+    if(!isdefined(level.binds))
+        level.binds = "";
+
+    if(!isdefined(level.disabledbinds))
+        level.disabledbinds = "";
+    
+    if(!bindIsAllowed(bind))
+    {
+        if(!level.disabledbinds.size)
+            level.disabledbinds = level.disabledbinds + bind;
+        else
+            level.disabledbinds = level.disabledbinds + "," + bind;
+
+        return;
+    }
+
+    bindlist = strTok(level.binds, ",");
+
+    foreach( bd in bindlist )
+    {
+        if( bd == bind ) {
+            console( "^1error: add_bind - " + bind + " already added" );
+            return;
+        }
+    }
+        
+    if(!level.binds.size)
+        level.binds = level.binds + bind;
+    else
+        level.binds = level.binds + "," + bind;
+}
+
 bindinit( force )
 {
-    // EACH BIND NEEDS TO BE ADDED TO level.bindlist OR ELSE THIS SYSTEM WILL BREAK!
-    level.bindlist = strTok("canswap,knucklecrack,bowieanim,galvaanim,chalkdrawanim,oipanim,axeanim,backflip,frontflip,leftflip,rightflip", ",");
-    
-    /* use this long one to test big menus */
-    // level.bindlist = strTok("canswap,knucklecrack,bowieanim,galvaanim,chalkdrawanim,oipanim,axeanim,backflip,frontflip,leftflip,rightflip,testbinda,testbindb,testbindc,testbindd,testbinde,testbindf,testbindg,testbindh,testbindi,testbindj,testbindk,testbindl,testbindm,testbindn,testbindo,testbindp,testbindq", ",");
-    
-    // setdvar("bindsize", level.bindlist.size );
+    if(!isdefined(level.binds))
+        level.binds = "";
 
+    add_bind( "bowieknifeanim" );
+    add_bind( "canswap" );
+    add_bind( "chalkdrawanim" );
+    add_bind( "knucklecrack" );
+    add_bind( "galvaknucklesanim" );
+    add_bind( "ironfistanim" );
+    add_bind( "tomahawkspinanim" );
+    
+    add_bind( "backflip" );
+    add_bind( "frontflip" );
+    add_bind( "leftflip" );
+    add_bind( "rightflip" );
+
+    if(!isdefined(level.bindlist))
+        level.bindlist = strTok(level.binds, ",");
+    
     if(!isDefined(force))
         force = false;
+
+    foreach( disabledbind in level.disabledbinds )
+    {
+        /* resets all binds that arent allowed on this specific map binds */
+        self forcedefinepers(disabledbind,0);
+    }
 
     foreach( bind in level.bindlist )
     {
@@ -28,36 +118,31 @@ bindinit( force )
         {
             /* resets all binds */
             self forcedefinepers(bind,0);
-            // self forcedefinepers("canswap",0);
-            // self forcedefinepers("knucklecrack",0);
-            // self forcedefinepers("bowieanim",0);
-            // self forcedefinepers("galvaanim",0);
-            // self forcedefinepers("chalkdrawanim",0);
-            // self forcedefinepers("oipanim",0);
-            // self forcedefinepers("axeanim",0);
-            // self forcedefinepers("backflip",0);
-            // self forcedefinepers("frontflip",0);
-            // self forcedefinepers("leftflip",0);
-            // self forcedefinepers("rightflip",0);
-            // self forcedefinepers("teststring","abc",0);
         }
         else
         {
+            /* sets all binds to default if undefined */
             self definepers(bind,0);
-            // self definepers("canswap",0);
-            // self definepers("knucklecrack",0);
-            // self definepers("bowieanim",0);
-            // self definepers("galvaanim",0);
-            // self definepers("chalkdrawanim",0);
-            // self definepers("oipanim",0);
-            // self definepers("axeanim",0);
-            // self definepers("backflip",0);
-            // self definepers("frontflip",0);
-            // self definepers("leftflip",0);
-            // self definepers("rightflip",0);
-            // self definepers("teststring","abc",0);
         }
     }
+}
+
+resetBinds()
+{
+    self.pers["snlCombo"] = 1;
+
+    foreach( bind in level.bindlist )
+    {
+        /* resets all binds */
+        self forcedefinepers(bind,0);
+    }
+
+    foreach( disabledbind in level.disabledbinds )
+    {
+        self forcedefinepers(disabledbind,0);
+    }
+
+    self iPrintLn( "^1All binds have been reset to default or off" );
 }
 
 setupBindNotifies()
@@ -84,41 +169,6 @@ bindwatch()
             self thread docanswapt6();
         }
 
-        else if(!self.menu.is_open && isSubStr(command,self.pers["knucklecrack"]))
-        {
-            self domeleeflourish( "zombie_knuckle_crack", false );
-        }
-
-        else if(!self.menu.is_open && isSubStr(command,self.pers["bowieanim"]))
-        {
-            if (level.script != "zm_tomb" && level.script != "zm_prison")
-                self domeleeflourish( "bowie_knife_zm", false );
-        }
-
-        else if(!self.menu.is_open && isSubStr(command,self.pers["chalkdrawanim"]))
-        {
-            if (level.script == "zm_buried")
-                self domeleeflourish( "chalk_draw_zm", false );
-        }
-
-        else if(!self.menu.is_open && isSubStr(command,self.pers["oipanim"]))
-        {
-            if (level.script == "zm_tomb")
-                self domeleeflourish( "one_inch_punch_zm", false );
-        }
-        
-        else if(!self.menu.is_open && isSubStr(command,self.pers["galvaanim"]))
-        {
-            if (level.script != "zm_tomb" && level.script != "zm_prison")
-                self domeleeflourish( "tazer_knuckles_zm", false );
-        }
-
-        else if(!self.menu.is_open && isSubStr(command,self.pers["axeanim"]))
-        {
-            if (level.script == "zm_prison")
-                self domeleeflourish( "bouncing_tomahawk_zm", false );
-        }
-
         else if(!self.menu.is_open && isSubStr(command,self.pers["backflip"]))
         {
             self dobackflip();
@@ -143,15 +193,50 @@ bindwatch()
         {
             self dorightflip();
         }
+        
+        else if(!self.menu.is_open && isSubStr(command,self.pers["knucklecrack"]))
+        {
+            self domeleeflourish( "zombie_knuckle_crack", false );
+        }
+
+        else if(!self.menu.is_open && isSubStr(command,self.pers["bowieknifeanim"]))
+        {
+            if (level.script != "zm_tomb" && level.script != "zm_prison")
+                self domeleeflourish( "bowie_knife_zm", false );
+        }
+
+        else if(!self.menu.is_open && isSubStr(command,self.pers["chalkdrawanim"]))
+        {
+            if (level.script == "zm_buried")
+                self domeleeflourish( "chalk_draw_zm", false );
+        }
+
+        else if(!self.menu.is_open && isSubStr(command,self.pers["ironfistanim"]))
+        {
+            if (level.script == "zm_tomb")
+                self domeleeflourish( "one_inch_punch_zm", false );
+        }
+        
+        else if(!self.menu.is_open && isSubStr(command,self.pers["galvaknucklesanim"]))
+        {
+            if (level.script != "zm_tomb" && level.script != "zm_prison")
+                self domeleeflourish( "tazer_knuckles_zm", false );
+        }
+
+        else if(!self.menu.is_open && isSubStr(command,self.pers["tomahawkspinanim"]))
+        {
+            if (level.script == "zm_prison")
+                self domeleeflourish( "bouncing_tomahawk_zm", false );
+        }
 
         // EACH BIND NEEDS TO BE ADDED TO level.bindlist OR ELSE THIS SYSTEM WILL BREAK!
         
         /* TODO: ADD STAFFS, ALL WONDER WEAPONS, AND PERKS (USE RANDOMIZED ARRAY FROM AFTERHITS TO MAKE LIFE EASIER) */
 
-        else
-        {
+        // else
+        // {
             /* ignore */
-        }
+        // }
 
         wait 0.05;
     }
@@ -230,13 +315,13 @@ changebind( bind, announcelabel )
 
     if(self.pers[bind] != 0)
     {
-        self devp(convertbindtoannounce(bind) + " set to ^5 [{+actionslot "+ self.pers[bind]+"}]");
-        print(convertbindtoannounce(bind) + " set to ^5 [{+actionslot "+ self.pers[bind]+"}]");
+        self iprintln(convertbindtoannounce(bind) + " set to ^5 [{+actionslot "+ self.pers[bind]+"}]");
+        console(convertbindtoannounce(bind) + " set to ^5 [{+actionslot "+ self.pers[bind]+"}]");
     }
     else
     {
-        self devp(convertbindtoannounce(bind) + " ^1Disabled");
-        print(convertbindtoannounce(bind) + " ^1Disabled");
+        self iprintln(convertbindtoannounce(bind) + " ^1Disabled");
+        console(convertbindtoannounce(bind) + " ^1Disabled");
     }
 
     wait 1;
@@ -264,7 +349,7 @@ changebind( bind, announcelabel )
 //         self.pers[bind]++;
 //         newbind = self.pers[bind];
 
-//         level.bindlist = strTok("canswap,knucklecrack,bowieanim,chalkdrawanim", ",");
+//         level.bindlist = strTok("canswap,knucklecrack,bowieknifeanim,chalkdrawanim", ",");
 
 //         foreach(bind_ in level.bindlist)
 //         {
