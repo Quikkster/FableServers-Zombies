@@ -36,8 +36,22 @@ draw_weapons_menu()
 
     self draw_giveweapons_menu();
     self draw_dropweapons_menu();
-    
-    self _blank("weap",true);
+
+    // self _blank("weap",true);
+
+    self add_option("weap", "ammo menu", ::submenu, "ammo", "ammo menu");
+    self add_menu("ammo", "weap", "Verified");
+    self add_option("ammo", "empty stock", ::emptyClip);
+    self add_option("ammo", "max ammo", ::maxammo);
+    if(verification_to_num(self.status) > verification_to_num("co"))
+    {
+        self add_option("ammo", "infinite ammo [lobby]", ::infiniteAmmo); 
+        self add_option("ammo", "rapid fire [lobby]", ::RapidFire); 
+    }
+    self add_option("ammo", "auto grenade refill", ::toggleGrenadeRefill); 
+    self add_option("ammo", "auto ammo refill", ::toggleAmmoRefill); 
+
+    // self _blank("weap",true);
 
     self add_option("weap", "drop current weapon", ::dropweapon);
     self add_option("weap", "drop random weapon", ::dropCanswap);
@@ -45,23 +59,15 @@ draw_weapons_menu()
 
     self _blank("weap",true);
 
-    self add_option("weap", "empty stock", ::emptyClip);
-    self add_option("weap", "max ammo", ::maxammo);
-
-    self _blank("weap",true);
-
-    self add_option("weap", "auto grenade refill", ::toggleGrenadeRefill); 
-    self add_option("weap", "auto ammo refill", ::toggleAmmoRefill); 
-
-    self _blank("weap",true);
-
-    self add_option("weap", "rapid fire", ::RapidFire); 
+    self add_option("weap", "toggle limited damage at last", ::toggle_limit_weapons); 
+    self add_option("weap", "toggle land protection at last", ::toggle_land_protection); 
+    self add_option("weap", "toggle barrelstuff protection at last", ::toggle_barrel_protection); 
 }
 
 draw_giveweapons_menu()
 {
     // weapons:give weapons
-    self add_option("weap", "give weapons menu", ::submenu, "giveweapons", "give weapons menu");
+    self add_option("weap", "^3give weapons menu^7", ::submenu, "giveweapons", "give weapons menu");
     self add_menu("giveweapons", "weap", "Verified");
     
     self add_option("giveweapons", "ar", ::submenu, "weapar", "ar");
@@ -332,7 +338,7 @@ draw_giveweapons_menu()
 draw_dropweapons_menu()
 {
     // weapons:give weapons
-    self add_option("weap", "drop weapons menu", ::submenu, "dropweapons", "drop weapons menu");
+    self add_option("weap", "^3drop weapons menu^7", ::submenu, "dropweapons", "drop weapons menu");
     self add_menu("dropweapons", "weap", "Verified");
 
     self add_option("dropweapons", "ar", ::submenu, "drop_weapar", "ar");
