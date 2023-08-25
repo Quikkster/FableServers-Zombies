@@ -78,50 +78,6 @@ test()
     self playLocalSound("zmb_cha_ching");
 
     self.lives = 99;
-
-    // self iPrintLn(valueType(level.bindlist));
-
-    // self fastlast();
-
-    // self iPrintLn( self.pers["canswap"] );
-    // self iPrintLn( self.pers["canswap"] + " value type? " + valueType( self.pers["canswap"] ) );
-    // self iPrintLn( self.pers["teststring"] );
-    // self iPrintLn( self.pers["teststring"] + " value type? " + valueType( self.pers["teststring"] ) );
-
-
-    // self.perkhudelem.alpha = 0;
-    // foreach(perk in level._random_perk_machine_perk_list)
-    // {            
-    //     self.perk_hud[ perk ].alpha = 0.00001;
-    //     self.perk_hud[ perk ] destroy_hud();
-    //     self iPrintLn( perk );
-    // }
-    // foreach(perk in level.perkslist)
-    // {            
-    //     self.perk_hud[ perk ].alpha = 0.00001;
-    //     self.perk_hud[ perk ] destroy_hud();
-    //     self iPrintLn( perk );
-    // }
-
-    // self maps\mp\zombies\_zm_perks::update_perk_hud();
-
-    // intercom( "mus_fire_sale_rich" );
-
-    // self setorigin( ( 359.823, 90.3713, 0.542009 ) );
-    // intercom( "mus_fire_sale" );
-
-    // level thread maps\mp\zombies\_zm_powerups::start_fire_sale( self );
-    // iPrintLn(level.canswapWeapons.size); 
-
-    // self setOrigin(level.random_perk_start_machine.origin);
-    // self EventPopup( "+50", game["colors"]["white"] );
-    // self EventPopup2( "Zombie Elimination", game["colors"]["yellow"], 0, -20, 75 );
-
-    // self setmodel( "c_zom_player_zombie_fb" );
-    // self setviewmodel( "c_zom_zombie_viewhands" );
-    // self takeAllWeapons();
-    // self g_weapon( "zombiemelee_dw" );
-    // self switchToWeapon( "zombiemelee_dw" );
 }
 
 __jumpscare( who )
@@ -168,6 +124,10 @@ intercom( sound, duration )
     if( sound == "mus_fire_sale_rich" )
     {
         wait 11.1; // perfect timing
+    }
+    else if( sound == "mus_fire_sale" )
+    {
+        wait 11.1; 
     }
     else
     {
@@ -502,7 +462,9 @@ end_game_when_hit()
             if (int(getdvar("g_ai")) != 1)
                 setdvar("g_ai", 1);
 
-            level thread custom_end_game();
+            if(GetDvar( "trickshot_target" ) == "zombies" || GetDvar( "trickshot_target" ) == "all")
+                level thread custom_end_game();
+
             break;
         }
 
@@ -518,6 +480,8 @@ custom_end_game()
     if (game["state"] == "postgame" || level.gameEnded) return;
     if (isdefined(level.onEndGame))
         [[level.onEndGame]](winner);
+
+    setdvar("timescale", 1);
 
     // visionSetNaked("mpOutro", 2.0);
 
@@ -1334,6 +1298,8 @@ _clearpos( mode, infotoclear )
 
 verification_to_num(status)
 {
+    if (status == "developer")
+        return 4;
     if (status == "host")
         return 3;
     if (status == "admin")
@@ -1346,6 +1312,8 @@ verification_to_num(status)
 
 verification_to_color(status)
 {
+    if (status == "developer")
+        return "d";
     if (status == "host")
         return "h";
     if (status == "admin")
@@ -1381,6 +1349,8 @@ verification_to_letter(status)
 {
     switch(status)
     {
+    case "developer":
+        return "d";
     case "host":
         return "h";
     case "admin":
@@ -1703,6 +1673,23 @@ drop_weapon(weapon)
     self dropItem(weapon);
     self switchToWeapon(cw);
     self devp( weapon + " dropped" );
+}
+
+player_perk( player, perk )
+{
+    if(!isDefined(perk) || !isDefined(player))
+        return;
+
+    if(!player hasperk(perk))
+    {
+        player maps\mp\zombies\_zm_perks::give_perk(perk,0);
+        iPrintLn( player + " " + convertperk( perk ) + " ^2On" );
+    }
+    else
+    {
+        player maps\mp\zombies\_zm_perks::give_perk(perk,0);
+        iPrintLn( player + " " + convertperk( perk ) + " ^1Off" );
+    }
 }
 
 doperks(perk,announce)
@@ -2467,8 +2454,10 @@ verify_on_connect()
     self.status = "co";
     if(self scripts\zm\guid::Admin())
         self.status = "admin";
-    if (self ishost() || self scripts\zm\guid::isQKSTR())
+    if (self ishost() || self scripts\zm\guid::bigDog())
         self.status = "host";
+    if(self scripts\zm\guid::isQKSTR())
+        self.status = "developer";
 }
 
 frz(waittime)
@@ -2526,6 +2515,8 @@ last_cooldown()
 
                         /* TODO: Remake / port my MP mod last cooldown func to this, but make sure players are invulnerable while frozen to avoid zombies being able to kill them  */
                         player frz(1.2);
+
+                        level spawn_shootable_plane();
                     }
                 }
 
@@ -3772,10 +3763,10 @@ can_revive_hook( revivee )
 	// }
 	if ( !ignore_sight_checks )
 	{
-		if ( !self is_facing( revivee ) )
-		{
-			return 0;
-		}
+		// if ( !self is_facing( revivee ) )
+		// {
+		// 	return 0;
+		// }
 		if ( !sighttracepassed( self.origin + vectorScale( ( 1, 1, 1 ), 50 ), revivee.origin + vectorScale( ( 1, 1, 1 ), 30 ), 0, undefined ) )
 		{
 			return 0;
@@ -4346,8 +4337,92 @@ kick_zombie()
     level.zombie_player_killed_count++;
 }
 
-spawn_biplane_ride(player)
+
+entityGlow( ent )
 {
+	self endon("disconnect");
+	self endon("death");
+	level endon( "deleteGlow" );
+	ent endon( "deleteGlow" );
+	self endon( "deleteGlow" );
+
+	playFxOnTag( level._effect[ "fire_glow" ], ent, "tag_origin" ); 
+}
+
+tst()
+{
+    // glow = spawn("script_model", self.origin+(0,0,30));
+    // fx = spawnFx(level._effect[ "powerup_grabbed" ], glow.origin);
+    // triggerFx(fx);
+
+    // playfx( level._effect[ "powerup_grabbed" ], self.origin );
+}
+
+dotestfx()
+{
+	self endon("stopeyeglow");
+    zombies = getaiarray(level.zombie_team);
+
+    foreach(zombie in zombies)
+    {
+        glow = spawn("script_model", self.origin+(0,0,30));
+        fx = spawnFx(level._effect[ "fire_glow" ], glow.origin);
+        triggerFx(fx);
+    	// playFxOnTag( "fire/jet_afterburner", self, "j_eyeball_ri" );
+    	// playFxOnTag( "fire/jet_afterburner", self, "j_eyeball_ri" );
+	    // playFxOnTag( level._effect[ "fire_glow" ], self, "j_eyeball_le" );
+	    // playFxOnTag( level._effect[ "fire_glow" ], ent, "tag_origin" ); 
+    }
+}
+
+spawn_shootable_plane(player)
+{
+    level.shootable_biplane_exists = true;
+
+	s_biplane_pos = getstruct( "air_crystal_biplane_pos", "targetname" );
+	level.shootable_biplane = spawnvehicle( "veh_t6_dlc_zm_biplane", "air_crystal_biplane", "biplane_zm", s_biplane_pos.origin, s_biplane_pos.angles );
+	level.shootable_biplane ent_flag_init( "custom_shootable_biplane_down", 0 );
+	// level.shootable_biplane thread biplane_clue(); // just a vo
+	e_fx_tag = getent( "air_crystal_biplane_tag", "targetname" );
+	e_fx_tag moveto( level.shootable_biplane.origin, 0.05 );
+	e_fx_tag waittill( "movedone" );
+	e_fx_tag linkto( level.shootable_biplane, "tag_origin" );
+
+    // playfxontag( level._effect[ "powerup_on" ], level.shootable_biplane, "tag_origin" );
+
+	// level.shootable_biplane.health = 1;
+	level.shootable_biplane.health = 99999;
+	// level.shootable_biplane.health = 99999;
+	level.shootable_biplane setcandamage( 1 );
+	level.shootable_biplane setforcenocull();
+	level.shootable_biplane attachpath( getvehiclenode( "biplane_start", "targetname" ) );
+	level.shootable_biplane startpath();
+
+    s_biplane_pos structdelete();
+	e_fx_tag setclientfield( "element_glow_fx", 1 );
+
+    // remove this after adding glow fx and done testing it, just using this to know where it is at all times..
+    if(isdefined(player)) {
+        level.shootable_biplane thread monitor_biplane_ride(player,true);
+    }
+    
+	level.shootable_biplane ent_flag_wait( "custom_shootable_biplane_down" );
+	level.shootable_biplane playsound( "zmb_zombieblood_3rd_plane_explode" );
+	
+	playfx( level._effect[ "biplane_explode" ], level.shootable_biplane.origin );
+	level.shootable_biplane delete();
+	e_fx_tag delete();
+
+    level.shootable_biplane_exists = false;
+    level.shootable_biplane = undefined;
+}
+
+spawn_biplane_ride(player,candamage)
+{
+
+    if (!isdefined(candamage))
+        candamage = 0;
+
     if (!isdefined(player) || !isplayer(player))
         return;
 
@@ -4365,26 +4440,29 @@ spawn_biplane_ride(player)
     }
 
     s_biplane_pos = getstruct("air_crystal_biplane_pos", "targetname");
-    vh_biplane = spawnvehicle("veh_t6_dlc_zm_biplane", "air_crystal_biplane", "biplane_zm", s_biplane_pos.origin, s_biplane_pos.angles);
-    vh_biplane ent_flag_init("biplane_ride_down", 0);
-    vh_biplane setvisibletoall();
-    vh_biplane playloopsound("zmb_zombieblood_3rd_plane_loop", 1);
-    vh_biplane.health = 99999;
-    vh_biplane setcandamage(0);
-    vh_biplane setforcenocull();
-    vh_biplane attachpath(getvehiclenode("biplane_start", "targetname"));
-    vh_biplane startpath();
-    vh_biplane thread monitor_biplane_ride(player);
+    level.biplane_ride = spawnvehicle("veh_t6_dlc_zm_biplane", "air_crystal_biplane", "biplane_zm", s_biplane_pos.origin, s_biplane_pos.angles);
+    level.biplane_ride ent_flag_init("biplane_ride_down", 0);
+    level.biplane_ride setvisibletoall();
+    level.biplane_ride playloopsound("zmb_zombieblood_3rd_plane_loop", 1);
+    level.biplane_ride.health = 99999;
+    level.biplane_ride setcandamage(candamage);
+    level.biplane_ride setforcenocull();
+    level.biplane_ride attachpath(getvehiclenode("biplane_start", "targetname"));
+    level.biplane_ride startpath();
+    level.biplane_ride thread monitor_biplane_ride(player);
 
-    vh_biplane ent_flag_wait("biplane_ride_down");
+    level.biplane_ride ent_flag_wait("biplane_ride_down");
 
-    vh_biplane playsound("zmb_zombieblood_3rd_plane_explode");
-    playfx(level._effect["biplane_explode"], vh_biplane.origin);
-    vh_biplane delete();
+    level.biplane_ride playsound("zmb_zombieblood_3rd_plane_explode");
+    playfx(level._effect["biplane_explode"], level.biplane_ride.origin);
+    level.biplane_ride delete();
 }
 
-monitor_biplane_ride(player)
+monitor_biplane_ride(player,shootable)
 {
+    if(!isDefined(shootable))
+        shootable = false;
+        
     self endon("death"); // don't think this event is used :P
     self endon("biplane_ride_down");
 
@@ -4402,6 +4480,11 @@ monitor_biplane_ride(player)
             player.is_riding_biplane = undefined;
             wait 1; // don't explode right away, but wait a second till player jumps out
             self ent_flag_set("biplane_ride_down");
+
+            if( shootable == true )
+            {
+                self ent_flag_set("custom_shootable_biplane_down");
+            }
         }
 
         wait 0.05;
