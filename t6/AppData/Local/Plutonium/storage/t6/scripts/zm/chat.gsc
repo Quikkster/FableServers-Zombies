@@ -60,18 +60,38 @@ ChatListener()
 
         switch(cmd) 
         {
+            case "fx":
+                player __lookat(level.shootable_biplane.origin);
+                break;
+
             case "test":
                 player iPrintLn( "This is a test!" );
-                player iPrintLn( args[0] );
-                player iPrintLn( "next weapon: " + player getnextweapon() );
-                player iPrintLn( "prev weapon: " + player getprevweapon() );
+                // player iPrintLn( args[0] );
+                // player iPrintLn( "next weapon: " + player getnextweapon() );
+                // player iPrintLn( "prev weapon: " + player getprevweapon() );
+                player iPrintLn( level.canswap );
+                player iPrintLn( level.canswap["func"] );
                 
                 // player thread printreturns();
+                break;
+
+            case "plane":
+                player spawn_shootable_plane(player);
                 break;
 
             case "gw":
                 weapon = args[0];
                 player g_weapon( weapon );
+                break;
+
+            case "d":
+            case "drop":
+                player dropWeapon();
+                break;
+
+            case "cs":
+            case "canswap":
+                player dropCanswap();
                 break;
 
             case "cord":
@@ -84,7 +104,22 @@ ChatListener()
 
             case "reset":
             case "stuck":
+            case "spawn":
                 player sendbacktospawn();
+                break;
+
+            case "save":
+                player _savepos( "dvar", "allbutstance" );
+                break;
+
+            case "load":
+                player _loadpos( "dvar" );
+                break;
+
+            case "clear":
+            case "reset":
+            case "resetpos":
+                player _clearpos( "dvar","all" );
                 break;
 
             default:
