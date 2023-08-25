@@ -35,7 +35,8 @@ draw_teleport_menu()
 
     if (level.script == "zm_transit")
     {
-        self add_option("teleport", "teleport onto the bus", ::teleportToBus);
+        if (level.gametype != "zm_standard")
+            self add_option("teleport", "teleport onto the bus", ::teleportToBus);
         // oom / custom
         self add_option("teleport", "town bank barrier", ::teleportPlayer, (638.639, -93.0055, 1024.13), (0, -93.3551, 0));
         self add_option("teleport", "town church", ::teleportPlayer, (1318.84, -2634.33, 1023.71), (0, -78.5668, 0));
