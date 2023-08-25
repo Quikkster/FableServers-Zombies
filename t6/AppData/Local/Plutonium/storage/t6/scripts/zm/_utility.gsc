@@ -58,18 +58,24 @@ toggle_limit_weapons()
 {
     self.limit_damage_weapons = !self.limit_damage_weapons;
     self iprintln("limit damage weapons at last: " + convertstatus(self.limit_damage_weapons));
+
+    self setPlayerCustomDvar("limit_damage_weapons", self.limit_damage_weapons);
 }
 
 toggle_land_protection()
 {
     self.land_protection = !self.land_protection;
     self iprintln("land protection at last: " + convertstatus(self.land_protection));
+
+    self setPlayerCustomDvar("land_protection", self.land_protection);
 }
 
 toggle_barrel_protection()
 {
     self.barrel_protection = !self.barrel_protection;
     self iprintln("barrelstuff protection at last: " + convertstatus(self.barrel_protection));
+
+    self setPlayerCustomDvar("barrel_protection", self.barrel_protection);
 }
 
 firstLetterToUpper( word )
