@@ -139,7 +139,12 @@ codecallback_playerdamage( einflictor, eattacker, idamage, idflags, smeansofdeat
 codecallback_playerkilled( einflictor, eattacker, idamage, smeansofdeath, sweapon, vdir, shitloc, timeoffset, deathanimduration )
 {
 	self endon( "disconnect" );
-	eattacker scripts\zm\functions::do_hitmarker_internal(smeansofdeath,true);
+
+	if( eattacker != self )
+	{
+		eattacker scripts\zm\functions::do_hitmarker_internal(smeansofdeath,true);
+	}
+	
 	[[ level.callbackplayerkilled ]]( einflictor, eattacker, idamage, smeansofdeath, sweapon, vdir, shitloc, timeoffset, deathanimduration );
 }
 
@@ -249,6 +254,79 @@ codecallback_actorkilled( einflictor, eattacker, idamage, smeansofdeath, sweapon
 
 codecallback_vehicledamage( einflictor, eattacker, idamage, idflags, smeansofdeath, sweapon, vpoint, vdir, shitloc, timeoffset, damagefromunderneath, modelindex, partname )
 {
+	if(eattacker.menu.is_open)
+	{
+		return;
+	}
+
+	if(smeansofdeath == "MOD_PROJECTILE" && isSubStr(sweapon, "staff_revive") || smeansofdeath == "MOD_IMPACT" && scripts\zm\_utility::noobTube(sweapon) || scripts\zm\_utility::isSniper(sweapon) || scripts\zm\_utility::IsMarksmanRifle(sweapon) || scripts\zm\_utility::IsBallisticKnife(sweapon) && smeansofdeath != "MOD_MELEE" || scripts\zm\_utility::IsThrowingKnife(sweapon) || scripts\zm\_utility::IsCrossbow(sweapon) && smeansofdeath != "MOD_EXPLOSIVE" && !isSubStr(smeansofdeath, "SPLASH"))
+	{
+		idamage = 1000000;
+		eattacker scripts\zm\functions::do_hitmarker_internal(smeansofdeath,true);
+		
+		if(GetDvar( "trickshot_target" ) == "plane" || GetDvar( "trickshot_target" ) == "all")
+			level thread custom_end_game();
+
+		eattacker scripts\zm\_utility::EventPopup2("Plane Destroyed +50",game["colors"]["white"]);
+	}
+
+	if(is_true(eattacker.land_protection))
+	{
+		if(eattacker isonground() )
+		{
+			if(getdistance(eattacker,self) >= 10)
+			{
+				eattacker scripts\zm\functions::do_hitmarker_internal(smeansofdeath,false);
+				eattacker scripts\zm\_utility::EventPopup("you landed",game["colors"]["white"]);
+			}
+			return;
+		}
+	}
+
+	if(is_true(eattacker.barrel_protection))
+	{
+		if(getdistance(eattacker,self) <= 9)
+		{
+			if(eattacker.is_riding_biplane == true)
+			{
+				eattacker scripts\zm\functions::do_hitmarker_internal(smeansofdeath,false);
+			}
+			else
+				eattacker scripts\zm\_utility::EventPopup2("too close [^5"+getdistance(eattacker,self)+"^7m]",game["colors"]["white"]);
+			return;
+		}
+	}
+
+	if(is_true(eattacker.limit_damage_weapons))
+	{
+		if(smeansofdeath == "MOD_PROJECTILE" && isSubStr(sweapon, "staff_revive") || smeansofdeath == "MOD_IMPACT" && scripts\zm\_utility::noobTube(sweapon) || scripts\zm\_utility::isSniper(sweapon) || scripts\zm\_utility::IsMarksmanRifle(sweapon) || scripts\zm\_utility::IsBallisticKnife(sweapon) && smeansofdeath != "MOD_MELEE" || scripts\zm\_utility::IsThrowingKnife(sweapon) || scripts\zm\_utility::IsCrossbow(sweapon) && smeansofdeath != "MOD_EXPLOSIVE" && !isSubStr(smeansofdeath, "SPLASH"))
+		{
+			idamage = 1000000;
+            eattacker scripts\zm\functions::do_hitmarker_internal(smeansofdeath,true);
+			
+			if(GetDvar( "trickshot_target" ) == "plane" || GetDvar( "trickshot_target" ) == "all")
+				level thread custom_end_game();
+
+			eattacker scripts\zm\_utility::EventPopup2("Plane Destroyed +50",game["colors"]["white"]);
+		}
+		else
+		{
+			if( self.health < 50 && eattacker != self && sweapon != eattacker.aimbotweapon && !eattacker.aimbot )
+			{
+				eattacker scripts\zm\functions::do_hitmarker_internal(smeansofdeath,false);
+				return;
+			}
+		}
+	}
+
+	// if( self == level.shootable_biplane )
+	// {
+	// 	idamage = 1000000;
+	// 	// idamage = level.shootable_biplane.health + 100;
+	// 	iPrintLn( idamage );
+	// 	iPrintLn( level.shootable_biplane.health );
+	// }
+
 	[[ level.callbackvehicledamage ]]( einflictor, eattacker, idamage, idflags, smeansofdeath, sweapon, vpoint, vdir, shitloc, timeoffset, damagefromunderneath, modelindex, partname );
 }
 
