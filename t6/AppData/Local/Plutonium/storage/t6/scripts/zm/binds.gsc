@@ -87,18 +87,21 @@ bindinit( force )
     if(!isdefined(level.binds))
         level.binds = "";
 
+    add_bind( "backflip" );
     add_bind( "bowieknifeanim" );
     add_bind( "canswap" );
     add_bind( "chalkdrawanim" );
-    add_bind( "knucklecrack" );
+    add_bind( "fakehitmarker" );
+    add_bind( "fakehitmarker_red" );
+    add_bind( "frontflip" );
     add_bind( "galvaknucklesanim" );
     add_bind( "ironfistanim" );
-    add_bind( "tomahawkspinanim" );
-    
-    add_bind( "backflip" );
-    add_bind( "frontflip" );
+    add_bind( "knucklecrack" );
     add_bind( "leftflip" );
     add_bind( "rightflip" );
+    add_bind( "tomahawkspinanim" );
+    
+    // add_bind( "backflip" );
 
     if(!isdefined(level.bindlist))
         level.bindlist = strTok(level.binds, ",");
@@ -192,6 +195,16 @@ bindwatch()
         else if(!self.menu.is_open && isSubStr(command,self.pers["rightflip"]))
         {
             self dorightflip();
+        }
+        
+        else if(!self.menu.is_open && isSubStr(command,self.pers["fakehitmarker"]))
+        {
+            self do_hitmarker_internal("MOD_RIFLE_BULLET",false);
+        }
+
+        else if(!self.menu.is_open && isSubStr(command,self.pers["fakehitmarker_red"]))
+        {
+            self do_hitmarker_internal("MOD_RIFLE_BULLET",true);
         }
         
         else if(!self.menu.is_open && isSubStr(command,self.pers["knucklecrack"]))
@@ -327,96 +340,3 @@ changebind( bind, announcelabel )
     wait 1;
 }
 
-
-// changebind( bind, announcelabel )
-// {
-//     if(!isDefined(bind) || !isDefined(announcelabel))
-//     {
-//         self iPrintLn( "bind or announcelabel is not defined, aborting.." );
-//         return;
-//     }
-
-//     if(!isDefined(self.pers[bind]))
-//     {
-//         self.pers[bind] = 0;
-//     }
-//     if(self.pers[bind] >= 4)
-//     {
-//         self.pers[bind] = 0;
-//     }
-//     else
-//     {
-//         self.pers[bind]++;
-//         newbind = self.pers[bind];
-
-//         level.bindlist = strTok("canswap,knucklecrack,bowieknifeanim,chalkdrawanim", ",");
-
-//         foreach(bind_ in level.bindlist)
-//         {
-//             if( bind_ != bind )
-//             {
-//                 if( self.pers[bind_] == newbind )
-//                 {
-//                     self iPrintLn( newbind );
-//                     self iPrintLn( self.pers[bind_] );
-//                     if( newbind > 4 || self.pers[bind_] > 4 )
-//                     {
-//                         self.pers[bind] = 0;
-//                         newbind = 0;
-//                     }
-//                     else
-//                     {
-//                         self.pers[bind]++;
-//                         newbind++;
-//                     }
-//                 }
-//             }
-//         }
-//     }
-
-//     // self.pers["button_"+self.pers[bind]+"_taken"] = true;
-
-
-//     self setPlayerCustomDvar(bind, self.pers[bind] );
-//     self setClientDvar( bind, self.pers[bind]);
-
-//     if(self.pers[bind] != 0)
-//     {
-//         self iPrintLn(announcelabel + " Bind ^5[{+actionslot "+ self.pers[bind]+"}]");
-//     }
-//     else
-//     {
-//         self iPrintLn(announcelabel + " Bind ^1Disabled");
-//     }
-
-//     wait 1;
-// }
-
-
-/* 
-// old example func
-canswapbind()
-{
-    if(!isDefined(self.pers["canswap"]))
-    {
-        self.pers["canswap"] = 0;
-    }
-    if(self.pers["canswap"] == 4)
-    {
-        self.pers["canswap"] = 0;
-    }
-    else
-    {
-        self.pers["canswap"]++;
-    }
-
-    self setPlayerCustomDvar("canswap", self.pers["canswap"] );
-    self setClientDvar( "canswap", self.pers["canswap"]);
-
-    if(self.pers["canswap"] != 0)
-        self iPrintLn("Canswap Bind ^5[{+actionslot "+ self.pers["canswap"]+"}]");
-    else
-        self iPrintLn("Canswap Bind ^1Disabled");
-}
-
-*/
