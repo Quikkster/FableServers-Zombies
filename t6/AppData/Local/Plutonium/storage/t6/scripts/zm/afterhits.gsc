@@ -7,6 +7,7 @@
 init()
 {
     level thread Floaters();
+    level thread autoReload();
 }
 
 setAfterhit(afterhit)
@@ -95,6 +96,7 @@ init_afterhit()
     self.afterhit[16]["weapon"] = "screecher_arms_zm";
     self.afterhit[17]["weapon"] = "syrette_afterlife_zm";
     self.afterhit[18]["weapon"] = "minigun_alcatraz_zm";
+    self.afterhit[19]["weapon"] = "claymore_zm";
 }
 
 can_toggle()
@@ -159,6 +161,38 @@ pullout_weapon(weapon, index)
 }
 
 /*=======================================================================================================================================*/
+
+
+// toggle floaters
+toggleautoreload()
+{
+    if(!self.pers["autoreload"])
+    {
+        self playSoundToPlayer( level.func_on, self );
+        self.pers["autoreload"] = 1;
+    }
+    else
+    {
+        self playSoundToPlayer( level.func_off, self );
+        self.pers["autoreload"] = 0;
+    }
+
+    /* end results */
+    self setPlayerCustomDvar("autoreload", self.pers["floaters"] );
+    self setClientDvar( "autoreload", self.pers["autoreload"]);
+    self iPrintLn("Auto Reload Afterhit " + convertStatus(self.pers["autoreload"]));
+}
+
+autoReload()
+{
+	level waittill("game_ended");
+	foreach(player in level.players)
+	{
+		if(player.pers["autoreload"] && !player isBot() && isAlive(player))
+			player setWeaponAmmoClip(player getCurrentWeapon(), 0 );
+	}
+}
+
 
 Floaters()
 {
